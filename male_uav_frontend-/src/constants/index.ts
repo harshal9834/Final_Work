@@ -9,18 +9,15 @@ export const NAV_ITEMS = [
   { id: 'live-monitoring', label: 'Live Telemetry', path: '/live-monitoring', icon: 'Activity', badge: 'SCADA' },
   { id: 'digital-twin', label: '3D Digital Twin', path: '/digital-twin', icon: 'Cpu', badge: '3D/HEAT' },
   { id: 'ai-predictions', label: 'AI Prediction Center', path: '/ai-predictions', icon: 'BrainCircuit', badge: 'RUL/XAI' },
-  { id: 'hybrid-verification', label: 'Physics + AI Hybrid', path: '/hybrid-verification', icon: 'GitCompare', badge: 'USP' },
+  { id: 'fleet', label: 'Fleet Monitoring', path: '/fleet', icon: 'Radar', badge: '5 UAVs' },
   { id: 'mission-control', label: 'Mission Control', path: '/mission-control', icon: 'Radio', badge: 'GO/NO-GO' },
   { id: 'mission-replay', label: 'Mission Replay', path: '/mission-replay', icon: 'History', badge: 'AI-LOG' },
   { id: 'fault-injection', label: 'Fault Simulator', path: '/fault-injection', icon: 'ZapOff', badge: 'TESTBED' },
   { id: 'maintenance', label: 'Smart Maintenance', path: '/maintenance', icon: 'Wrench', badge: 'LOGBOOK' },
-  { id: 'fleet', label: 'Fleet Monitoring', path: '/fleet', icon: 'Radar', badge: '5 UAVs' },
-  { id: 'alerts', label: 'Alert & Alarm Center', path: '/alerts', icon: 'AlertTriangle', badge: '3 ACTIVE' },
   { id: 'multi-agent', label: 'Multi-Agent Pipeline', path: '/multi-agent', icon: 'Network', badge: '6 AGENTS' },
   { id: 'continuous-learning', label: 'Continuous Learning', path: '/continuous-learning', icon: 'Sparkles', badge: 'ADAPTIVE' },
   { id: 'reports', label: 'Intelligence Reports', path: '/reports', icon: 'FileText', badge: 'DOCX/PDF' },
-  { id: 'system-health', label: 'System Architecture', path: '/system-health', icon: 'ShieldCheck', badge: '99.98%' },
-  { id: 'garuda-ai', label: 'GARUDA-AI', path: '/garuda-ai', icon: 'Terminal', badge: 'AI/OPS' },
+  { id: 'system-health', label: 'System Architecture', path: '/system-health', icon: 'ShieldCheck', badge: '99.98%' }
 ];
 
 export const MOCK_UAV_FLEET: UavUnit[] = [

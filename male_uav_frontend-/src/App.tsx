@@ -99,7 +99,7 @@ const MainLayout: React.FC = () => {
         return <HybridVerificationPage />;
       case 'mission-control':
         return <MissionControlPage />;
-      case 'replay':
+      case 'mission-replay':
         return <MissionReplayPage />;
       case 'fault-injection':
         return <FaultInjectionPage />;

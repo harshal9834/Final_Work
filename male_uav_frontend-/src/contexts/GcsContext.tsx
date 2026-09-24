@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { 
   UavUnit, 
   EngineTelemetry, 
@@ -95,6 +95,11 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isTourActive, setIsTourActive] = useState<boolean>(false);
   const [currentTourStep, setCurrentTourStep] = useState<number>(0);
   const [customRulOffsetHours, setCustomRulOffsetHours] = useState<number>(0);
+
+  useEffect(() => {
+    console.log("GcsProvider Mounted");
+    console.log("GcsProvider Initialized");
+  }, []);
 
   const selectedUav = uavFleet.find(u => u.id === selectedUavId) || uavFleet[0];
 
@@ -200,17 +205,26 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [uavFleet, speakVoiceAlert]);
 
+  // Use ref to avoid dependency cycles for selectedUavId
+  const selectedUavIdRef = useRef(selectedUavId);
+  useEffect(() => {
+    selectedUavIdRef.current = selectedUavId;
+  }, [selectedUavId]);
+
   // Persistent WebSocket Stream Integration with Main Backend Gateway (Port 8000)
   useEffect(() => {
     let ws: WebSocket | null = null;
     let reconnectTimeout: any = null;
+    let isMounted = true;
 
     const connectWS = () => {
+      if (!isMounted) return;
       try {
         ws = new WebSocket('ws://localhost:8000/stream');
 
         ws.onopen = () => {
           console.log('[Main Dashboard] Connected to Main Backend Gateway (ws://localhost:8000/stream)');
+          console.log("WS Connected");
         };
 
         ws.onmessage = (event) => {
@@ -245,7 +259,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               if (data.health_score !== undefined || data.health !== undefined) {
                 const rawHealth = data.health_score !== undefined ? data.health_score : data.health;
                 const healthVal = (typeof rawHealth === 'number' && rawHealth > 0) ? rawHealth : 88.4;
-                setUavFleet(prev => prev.map(u => u.id === selectedUavId ? { ...u, engineHealthIndex: Number(healthVal.toFixed(1)) } : u));
+                setUavFleet(prev => prev.map(u => u.id === selectedUavIdRef.current ? { ...u, engineHealthIndex: Number(healthVal.toFixed(1)) } : u));
               }
 
               // Dynamic 1:1 Fault Synchronization strictly from Simulator Stream Payload
@@ -274,24 +288,34 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
 
         ws.onclose = () => {
-          reconnectTimeout = setTimeout(connectWS, 2000);
+          console.log("WS Closed");
+          if (isMounted) {
+            console.log("WS Reconnecting");
+            reconnectTimeout = setTimeout(connectWS, 2000);
+          }
         };
 
         ws.onerror = (err) => {
-          ws?.close();
+          if (ws) ws.close();
         };
       } catch (err) {
-        reconnectTimeout = setTimeout(connectWS, 2000);
+        if (isMounted) {
+          reconnectTimeout = setTimeout(connectWS, 2000);
+        }
       }
     };
 
     connectWS();
 
     return () => {
-      if (ws) ws.close();
+      isMounted = false;
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
     };
-  }, [selectedUavId]);
+  }, []);
 
   // Initial REST fetch from Main Backend Gateway (Port 8000) for active TimescaleDB faults
   useEffect(() => {
@@ -568,8 +592,113 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsTourActive(false);
   }, []);
 
+
+  // DRDO END-TO-END EVENT PIPELINE
+  const [missionSessionId, setMissionSessionId] = useState<string | null>(null);
+
+  // 1. Alert Generator Helper
+  const generateAlert = (type, severity, title, message) => {
+    setAlerts(prev => {
+      // Prevent rapid duplicates
+      if (prev.some(a => a.title === title && !a.acknowledged && (Date.now() - new Date(a.timestamp).getTime() < 5000))) return prev;
+      return [{
+        id: 'ALT-' + Date.now() + Math.floor(Math.random()*100),
+        type,
+        severity,
+        title,
+        message,
+        uavCallsign: selectedUavId,
+        timestamp: new Date().toISOString(),
+        acknowledged: false
+      }, ...prev];
+    });
+  };
+
+  // 2. Lifecycle Recording
+  useEffect(() => {
+    if (isSimulationRunning && !missionSessionId) {
+      fetch('http://localhost:4001/api/missions/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          missionName: mission.name || "Live Operation",
+          missionId: mission.id || "MIS-LIVE",
+          uavId: selectedUavId,
+          platform: 'MALE_UAV',
+          initialFuelKg: telemetry.fuelRemaining || 184.5,
+          initialHealthScore: telemetry.engineHealth || 100,
+          initialRulHours: telemetry.rulHours || 150
+        })
+      })
+      .then(r => r.json())
+      .then(d => {
+        setMissionSessionId(d.missionSessionId);
+        generateAlert('MISSION', 'INFO', 'Mission Started', 'Simulator engaged and database recording started.');
+      })
+      .catch(console.error);
+    } else if (!isSimulationRunning && missionSessionId) {
+      fetch('http://localhost:4001/api/missions/' + missionSessionId + '/end', { method: 'POST' }).catch(()=>{});
+      setMissionSessionId(null);
+      generateAlert('MISSION', 'INFO', 'Mission Ended', 'Simulator disengaged and database recording stopped.');
+    }
+  }, [isSimulationRunning]);
+
+  // 3. Telemetry & Engine Alerts
+  useEffect(() => {
+    if (missionSessionId && isSimulationRunning) {
+      fetch('http://localhost:4001/api/missions/' + missionSessionId + '/telemetry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telemetry })
+      }).catch(() => {});
+
+      if (telemetry.chtC[0] > 180) {
+        generateAlert('ENGINE', 'WARNING', 'High Cylinder Temperature (CHT)', `CHT Bank 1 exceeded 180°C threshold (Currently ${telemetry.chtC[0]}°C)`);
+      }
+      if (telemetry.turbochargerRpm > 130000) {
+        generateAlert('ENGINE', 'CRITICAL', 'Turbocharger Overspeed', `Turbo RPM exceeded safe margins: ${telemetry.turbochargerRpm} RPM`);
+      }
+      if (telemetry.oilPressureBar < 2.0) {
+        generateAlert('ENGINE', 'CRITICAL', 'Oil Pressure Drop', `Engine oil pressure dangerously low: ${telemetry.oilPressureBar} Bar`);
+      }
+    }
+  }, [telemetry.timestamp]);
+
+  // 4. Fault Injection & Alerts
+  const originalInjectFault = injectFault;
+  const recordedInjectFault = useCallback((faultId: string, severity?: number) => {
+    originalInjectFault(faultId, severity);
+    
+    // Fault rules mapping exactly to user request
+    let mappedSev = severity > 50 ? 'CRITICAL' : 'WARNING';
+    let title = faultId;
+    
+    if (faultId.includes('turbo')) { mappedSev = 'CRITICAL'; title = 'Turbocharger Efficiency Loss'; }
+    else if (faultId.includes('cht')) { mappedSev = 'WARNING'; title = 'CHT Temperature Spike'; }
+    else if (faultId.includes('egt')) { mappedSev = 'CRITICAL'; title = 'EGT Overtemperature'; }
+    else if (faultId.includes('oil')) { mappedSev = 'CRITICAL'; title = 'Oil Pressure Drop'; }
+    else if (faultId.includes('fuel')) { mappedSev = 'CRITICAL'; title = 'Fuel Leak'; }
+    else if (faultId.includes('sensor')) { mappedSev = 'WARNING'; title = 'Sensor Failure'; }
+
+    generateAlert('FAULT', mappedSev, title, `Simulator injected anomaly operating on ${faultId} at ${severity}% intensity.`);
+
+    if (missionSessionId) {
+      fetch('http://localhost:4001/api/missions/' + missionSessionId + '/fault', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          faultType: title,
+          severity: mappedSev,
+          affectedSystems: "Engine",
+          injectedAt: new Date().toISOString()
+        })
+      }).catch(console.error);
+    }
+  }, [missionSessionId, originalInjectFault]);
+
   return (
     <GcsContext.Provider
+
       value={{
         systemReady,
         uavFleet,
@@ -578,7 +707,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         telemetry,
         mission,
         activeFaults,
-        injectFault,
+        injectFault: recordedInjectFault,
         clearFault,
         clearAllFaults,
         alerts,

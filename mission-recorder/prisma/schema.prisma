@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model MissionSession {
+  id                 String   @id @default(uuid())
+  missionName        String
+  missionId          String
+  uavId              String
+  platform           String
+  startTime          DateTime
+  endTime            DateTime?
+  durationSeconds    Int?
+  status             String // RUNNING, SUCCESS, ABORTED, FAILED
+  initialFuelKg      Float?
+  initialHealthScore Float?
+  initialRulHours    Float?
+  
+  maxAltitude        Float?
+  totalDistance      Float?
+  fuelConsumed       Float?
+  avgEngineHealth    Float?
+  finalEngineHealth  Float?
+  finalRulHours      Float?
+  missionSuccessRate Float?
+
+  telemetryHistory   TelemetryHistory[]
+  missionEvents      MissionEvent[]
+  faultHistories     FaultHistory[]
+  aiInterventions    AiIntervention[]
+}
+
+model TelemetryHistory {
+  id               String   @id @default(uuid())
+  missionSessionId String
+  timestamp        DateTime
+  latitude         Float
+  longitude        Float
+  altitude         Float
+  groundSpeed      Float
+  heading          Float
+  
+  rpm              Float
+  chtAvg           Float
+  egtAvg           Float
+  oilTemp          Float
+  oilPressure      Float
+  turboBoost       Float
+  manifoldPressure Float
+  
+  fuelRemaining    Float
+  engineHealth     Float
+  rulHours         Float
+  missionPhase     String 
+  
+  missionSession   MissionSession @relation(fields: [missionSessionId], references: [id], onDelete: Cascade)
+
+  @@index([timestamp(sort: Desc)])
+}
+
+model MissionEvent {
+  id               String   @id @default(uuid())
+  missionSessionId String
+  timestamp        DateTime
+  eventType        String 
+  severity         String 
+  title            String
+  description      String?
+
+  missionSession   MissionSession @relation(fields: [missionSessionId], references: [id], onDelete: Cascade)
+}
+
+model FaultHistory {
+  id                String   @id @default(uuid())
+  missionSessionId  String
+  faultType         String
+  severity          String
+  affectedSystems   String
+  injectedAt        DateTime
+  detectedAt        DateTime?
+  recoveredAt       DateTime?
+  impactDescription String?
+  aiResponse        String?
+  outcome           String?
+
+  missionSession    MissionSession @relation(fields: [missionSessionId], references: [id], onDelete: Cascade)
+}
+
+model AiIntervention {
+  id               String   @id @default(uuid())
+  missionSessionId String
+  timestamp        DateTime
+  actionType       String
+  reason           String
+  confidenceScore  Float
+  outcome          String?
+
+  missionSession   MissionSession @relation(fields: [missionSessionId], references: [id], onDelete: Cascade)
+}

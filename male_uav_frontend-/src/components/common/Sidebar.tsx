@@ -37,8 +37,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
 
   const moreModuleIds = [
     'maintenance',
-    'fleet',
-    'alerts',
     'multi-agent',
     'continuous-learning',
     'reports',

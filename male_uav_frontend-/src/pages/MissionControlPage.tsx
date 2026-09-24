@@ -1,238 +1,395 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Compass, 
-  MapPin, 
-  ShieldCheck, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Navigation, 
-  TrendingUp, 
-  Clock, 
-  Fuel,
-  Sliders,
-  Wind
+  ShieldCheck, AlertTriangle, Terminal, Zap, Activity,
+  Wind, Cloud, Gauge, CheckCircle2,
+  Play, Pause, RotateCcw, Crosshair, Radio,
+  TrendingUp, ArrowRight
 } from 'lucide-react';
 import { useGcs } from '../contexts/GcsContext';
-import { MetricCard } from '../components/common/MetricCard';
+
+// Safe Error Boundary Component
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-mono">
+          <AlertTriangle className="w-5 h-5 mb-2" />
+          <p className="font-bold">Module Render Error</p>
+          <p>{this.state.error?.toString()}</p>
+        </div>
+      );
+    }
+    return this.props.children; 
+  }
+}
 
 export const MissionControlPage: React.FC = () => {
-  const { selectedUav, mission, telemetry } = useGcs();
+  const { 
+    selectedUav, 
+    mission, 
+    telemetry, 
+    injectFault, 
+    clearFault, 
+    activeFaults = [],
+    isSimulationRunning = false,
+    toggleSimulation,
+    resetTelemetryToNormal
+  } = useGcs();
 
-  const isGo = selectedUav.missionRiskScore < 30;
+  // Defensive fallback values
+  const safePhase = mission?.phase ?? 'UNKNOWN';
+  const safeAlt = selectedUav?.altitudeFt ?? 0;
+  const safeCallsign = selectedUav?.callsign ?? 'UNKNOWN UAV';
+  
+  const [activePhase, setActivePhase] = useState(safePhase);
+  const [targetAlt, setTargetAlt] = useState(safeAlt);
+  const [engineLoad, setEngineLoad] = useState('MEDIUM');
+
+  const [eventLog, setEventLog] = useState<{time: string, text: string}[]>([
+    { time: new Date().toLocaleTimeString(), text: 'Mission Control Center Initialized' },
+    { time: new Date().toLocaleTimeString(), text: `Telemetry Synced with ${safeCallsign}` }
+  ]);
+
+  const [impactRecord, setImpactRecord] = useState<{
+    title: string,
+    changes: {label: string, from: any, to: any}[]
+  } | null>(null);
+
+  const addEvent = (text: string) => {
+    setEventLog(prev => [{ time: new Date().toLocaleTimeString(), text }, ...prev]);
+  };
+
+  const handlePhaseChange = (phase: string) => {
+    setActivePhase(phase);
+    addEvent(`Mission Phase Changed to ${phase}`);
+    setImpactRecord({
+      title: 'MISSION PHASE CHANGED',
+      changes: [
+        { label: 'Phase', from: activePhase ?? 'UNKNOWN', to: phase },
+        { label: 'RPM target', from: telemetry?.rpm ?? 0, to: phase === 'TAKEOFF' ? 5500 : 4200 },
+        { label: 'Fuel Flow', from: telemetry?.fuelFlowLitersHr ?? 0, to: phase === 'TAKEOFF' ? 38.5 : 24.2 }
+      ]
+    });
+  };
+
+  const handleLoadChange = (load: string) => {
+    setEngineLoad(load);
+    addEvent(`Engine Load Adjusted to ${load}`);
+    setImpactRecord({
+      title: 'ENGINE LOAD CHANGED',
+      changes: [
+        { label: 'Load', from: engineLoad ?? 'UNKNOWN', to: load },
+        { label: 'MAP', from: telemetry?.manifoldPressureInHg ?? 0, to: load === 'MAXIMUM' ? 40.5 : 29.9 }
+      ]
+    });
+  };
+
+  const handleFault = (faultId: string) => {
+    const isAct = activeFaults?.some(f => f.id === faultId);
+    if (isAct) {
+      clearFault?.(faultId);
+      addEvent(`Cleared Fault: ${faultId}`);
+    } else {
+      injectFault?.(faultId, 80);
+      addEvent(`Injected Fault: ${faultId}`);
+    }
+  };
+
+  const riskScore = selectedUav?.missionRiskScore ?? 0;
+  const healthIndex = selectedUav?.engineHealthIndex ?? 0;
+  const isGo = riskScore < 30;
+
+  const phases = ['GROUND IDLE', 'TAKEOFF', 'CLIMB', 'CRUISE', 'LOITER', 'DESCENT', 'LANDING'];
+  const loads = ['LOW', 'MEDIUM', 'HIGH', 'MAXIMUM'];
+  const faults = [
+    { id: 'cylinder_overheat', label: 'Cylinder Overheat' },
+    { id: 'turbo_failure', label: 'Turbocharger Failure' },
+    { id: 'oil_pressure_loss', label: 'Oil Pressure Loss' },
+    { id: 'injector_failure', label: 'Fuel Injector Failure' },
+    { id: 'alternator_failure', label: 'Alternator Failure' },
+    { id: 'sensor_drift', label: 'Sensor Drift' },
+    { id: 'cooling_failure', label: 'Cooling System Failure' },
+    { id: 'exhaust_restriction', label: 'Exhaust Restriction' }
+  ];
 
   return (
-    <div className="p-4 space-y-4 max-w-[1920px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-heading font-bold text-xl text-slate-100">
-              Mission Control & Go/No-Go Reliability Center (Innovation #11 & #23)
-            </h1>
-            <span className="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 text-[10px] font-mono-code font-bold">
-              PATROL PHASE: {mission.phase}
-            </span>
-          </div>
-          <p className="text-xs font-mono-code text-slate-400 mt-0.5">
-            Mission: {mission.codeName} • Altitude: FL{Math.round(mission.altitudeFlightLevelFt / 100)} • Sector: {mission.terrainType}
-          </p>
+    <ErrorBoundary>
+      <div className="p-6 space-y-6 max-w-[1920px] mx-auto text-gray-900 bg-slate-50 min-h-full font-sans">
+        
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6 border-b border-gray-200 pb-4">
+          <Terminal className="w-6 h-6 text-blue-600" />
+          <h1 className="font-black text-2xl tracking-tight text-gray-900 uppercase">
+            Live Simulator Command Center
+          </h1>
         </div>
 
-        {/* Big Go / No-Go Decision Badge */}
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-mono-code font-bold text-sm ${
-          isGo 
-            ? 'bg-emerald-950/80 border-emerald-600 text-emerald-300 shadow-lg shadow-emerald-950/50' 
-            : 'bg-red-950/80 border-red-600 text-red-300 shadow-lg shadow-red-950/50 animate-pulse'
-        }`}>
-          {isGo ? <ShieldCheck className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
-          <span>DECISION: {isGo ? 'MISSION GO (94.2% RELIABILITY)' : 'ABORT / EXECUTE RTB'}</span>
-        </div>
-      </div>
-
-      {/* Top 4 Mission Reliability Parameters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <MetricCard
-          title="Mission Risk Index"
-          value={`${selectedUav.missionRiskScore.toFixed(1)}%`}
-          status={isGo ? 'NORMAL' : 'CRITICAL'}
-          change={isGo ? 'Within 30% Safety Ceiling' : 'Risk Exceeds Safety Margin'}
-          changeType={isGo ? 'positive' : 'negative'}
-          icon={ShieldCheck}
-          subtext="Terrain + Met + Powerplant"
-        />
-        <MetricCard
-          title="Remaining Fuel Endurance"
-          value={`${(selectedUav.fuelRemainingKg / 14.5).toFixed(1)}h`}
-          status="HIGHLIGHT"
-          change={`${selectedUav.fuelRemainingKg} kg onboard`}
-          changeType="positive"
-          icon={Fuel}
-          subtext="Specific fuel consumption nominal"
-        />
-        <MetricCard
-          title="Loiter Time on Station"
-          value={`${mission.elapsedTimeHours}h`}
-          status="NORMAL"
-          change="3.5h planned remaining"
-          changeType="neutral"
-          icon={Clock}
-          subtext="Altitude: FL220 (22,000 FT)"
-        />
-        <MetricCard
-          title="Telemetry Link Margin"
-          value="48.2 dB"
-          status="NORMAL"
-          change="Ku-band SATCOM + C-Band LOS"
-          changeType="positive"
-          icon={Navigation}
-          subtext="Encryption: DRDO Type-1"
-        />
-      </div>
-
-      {/* Waypoint Trajectory & Tactical Map Display */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left 8 Cols: Waypoint Flight Path Visualizer */}
-        <div className="lg:col-span-8 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-            <div className="flex items-center gap-2">
-              <Compass className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-heading font-bold text-sm text-slate-100">
-                Tactical Waypoint Trajectory & Terrain Profile
-              </h3>
-            </div>
-            <span className="text-[10px] font-mono-code text-slate-400">COORDINATES: WGS-84</span>
-          </div>
-
-          {/* SVG Tactical Navigation Map Schematic */}
-          <div className="relative flex-1 bg-slate-950/90 rounded-xl p-4 border border-slate-800/80 min-h-[320px] flex items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 tactical-grid opacity-30 pointer-events-none" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* LEFT COLUMN: CONTROLS (8/12) */}
+          <div className="col-span-12 xl:col-span-8 space-y-6">
             
-            {/* SVG Flight Path */}
-            <svg viewBox="0 0 700 300" className="w-full h-full">
-              {/* Waypoint Line */}
-              <polyline
-                points="80,240 220,180 380,120 540,150 640,110"
-                fill="none"
-                stroke="#06b6d4"
-                strokeWidth="2.5"
-                strokeDasharray="6 4"
-              />
-              
-              {/* Completed segment */}
-              <polyline
-                points="80,240 220,180 380,120"
-                fill="none"
-                stroke="#10b981"
-                strokeWidth="3"
-              />
+            {/* MISSION EXECUTION PANEL */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+              <div className="bg-gray-50 border-b border-gray-200 px-5 py-3">
+                <h2 className="font-black text-sm text-gray-800 tracking-widest uppercase flex items-center gap-2">
+                  <Play className="w-4 h-4 text-blue-600" />
+                  Mission Execution Phase
+                </h2>
+              </div>
+              <div className="p-5 flex flex-wrap gap-3">
+                {phases.map(phase => (
+                  <button 
+                    key={phase}
+                    onClick={() => handlePhaseChange(phase)}
+                    className={`px-5 py-2.5 rounded-lg font-black text-[11px] tracking-widest border transition-colors uppercase flex-1 min-w-[120px] ${
+                      activePhase === phase 
+                        ? 'bg-blue-600 text-white border-blue-700 shadow-md shadow-blue-200' 
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700'
+                    }`}
+                  >
+                    {phase}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-              {/* Waypoints */}
-              {mission.waypoints.map((wp, i) => {
-                const positions = [
-                  { x: 80, y: 240 },
-                  { x: 220, y: 180 },
-                  { x: 380, y: 120 },
-                  { x: 540, y: 150 },
-                  { x: 640, y: 110 },
-                ];
-                const pos = positions[i] || { x: 100, y: 100 };
-                const isCurrent = wp.status === 'CURRENT';
-                const isPassed = wp.status === 'PASSED';
-
-                return (
-                  <g key={wp.name} className="cursor-pointer">
-                    <circle
-                      cx={pos.x}
-                      cy={pos.y}
-                      r={isCurrent ? 12 : 7}
-                      fill={isPassed ? '#10b981' : isCurrent ? '#06b6d4' : '#334155'}
-                      stroke="#fff"
-                      strokeWidth="1.5"
-                    />
-                    {isCurrent && (
-                      <circle
-                        cx={pos.x}
-                        cy={pos.y}
-                        r="20"
-                        fill="none"
-                        stroke="#06b6d4"
-                        strokeWidth="1"
-                        className="animate-ping"
-                      />
-                    )}
-                    <text
-                      x={pos.x}
-                      y={pos.y - 14}
-                      textAnchor="middle"
-                      fill="#e2e8f0"
-                      fontSize="10"
-                      fontFamily="monospace"
-                      fontWeight="bold"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* ENGINE LOAD CONTROL */}
+              <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                <div className="bg-gray-50 border-b border-gray-200 px-5 py-3">
+                  <h2 className="font-black text-sm text-gray-800 tracking-widest uppercase flex items-center gap-2">
+                    <Gauge className="w-4 h-4 text-amber-600" />
+                    Engine Load Control
+                  </h2>
+                </div>
+                <div className="p-5 flex gap-2">
+                  {loads.map(load => (
+                    <button 
+                      key={load}
+                      onClick={() => handleLoadChange(load)}
+                      className={`flex-1 py-2.5 rounded font-black text-[10px] tracking-widest border transition-colors uppercase ${
+                        engineLoad === load 
+                          ? 'bg-amber-500 text-white border-amber-600 shadow-md shadow-amber-200' 
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700'
+                      }`}
                     >
-                      {wp.name} ({wp.altFt} FT)
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
-          </div>
-
-          <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-mono-code text-slate-400">
-            <span>CURRENT POSITION: <strong>26°55&apos;N, 70°54&apos;E (WP-04 LOITER)</strong></span>
-            <span>AIRSPEED: <strong className="text-slate-200">{selectedUav.airspeedKts} KTS</strong></span>
-          </div>
-        </div>
-
-        {/* Right 4 Cols: Mission Optimization Advisor (Innovation #23) */}
-        <div className="lg:col-span-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-indigo-400" />
-                <h3 className="font-heading font-bold text-sm text-slate-100">
-                  Mission Optimization Advisor
-                </h3>
+                      {load}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <span className="px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 text-[10px] font-mono-code font-bold">
-                INNOVATION #23
-              </span>
+
+              {/* FLIGHT CONDITION CONTROL */}
+              <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                <div className="bg-gray-50 border-b border-gray-200 px-5 py-3">
+                  <h2 className="font-black text-sm text-gray-800 tracking-widest uppercase flex items-center gap-2">
+                    <Cloud className="w-4 h-4 text-blue-400" />
+                    Flight Conditions
+                  </h2>
+                </div>
+                <div className="p-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Target Altitude</label>
+                    <select 
+                      value={targetAlt}
+                      onChange={(e) => { setTargetAlt(Number(e.target.value)); addEvent(`Altitude changed to ${e.target.value} FT`); }}
+                      className="w-full bg-gray-50 border border-gray-200 text-xs font-black p-2 rounded outline-none"
+                    >
+                      {[0, 5000, 10000, 15000, 22000, 25000].map(alt => (
+                        <option key={alt} value={alt}>{alt} FT</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Wind Speed</label>
+                    <input type="text" defaultValue="14 KTS" className="w-full bg-gray-50 border border-gray-200 text-xs font-black p-2 rounded outline-none" />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <p className="text-xs text-slate-300 mb-3 leading-relaxed">
-              Real-time Pareto trade-off optimization between UAV loiter duration, fuel consumption, and aero engine thermal stress:
-            </p>
-
-            <div className="space-y-2.5 text-xs font-mono-code">
-              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                <div className="flex items-center justify-between font-bold text-emerald-400 mb-1">
-                  <span>RECOMMENDATION #1</span>
-                  <span>+45 MIN EXTENSION</span>
-                </div>
-                <p className="text-slate-300 text-[11px]">
-                  Descend from FL240 to FL200: Reduces turbocharger compression ratio by 0.12 bar and lowers CHT by 7.4°C.
-                </p>
+            {/* FAULT INJECTION CENTER */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+              <div className="bg-red-50 border-b border-red-100 px-5 py-3 flex items-center justify-between">
+                <h2 className="font-black text-sm text-red-900 tracking-widest uppercase flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-red-600" />
+                  Fault Injection Center
+                </h2>
               </div>
-
-              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                <div className="flex items-center justify-between font-bold text-cyan-300 mb-1">
-                  <span>RECOMMENDATION #2</span>
-                  <span>-3.2 L/H FUEL SAVING</span>
-                </div>
-                <p className="text-slate-300 text-[11px]">
-                  Trim engine speed from 5,200 RPM to 4,850 RPM during orbital loiter without compromising ground-mapping radar swath.
-                </p>
+              <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+                {faults?.map(f => {
+                  const isActive = activeFaults?.some(af => af.id === f.id);
+                  return (
+                    <button 
+                      key={f.id}
+                      onClick={() => handleFault(f.id)}
+                      className={`flex flex-col items-start p-3 rounded-lg border-2 transition-colors gap-1 text-left ${
+                        isActive 
+                          ? 'bg-red-600 text-white border-red-700 shadow-md' 
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-red-300 hover:bg-red-50 hover:text-red-700'
+                      }`}
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-widest leading-tight">{f.label}</span>
+                      <span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? 'text-red-200' : 'text-gray-400'}`}>
+                        {isActive ? '● ACTIVE (80%)' : '○ CLEARED'}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
-          </div>
 
-          <div className="mt-4 p-3 rounded-xl bg-indigo-950/40 border border-indigo-800/60 text-xs">
-            <span className="font-bold text-indigo-300 block mb-1">AUTOMATED FLIGHT ENVELOPE PROTECTION:</span>
-            <p className="text-slate-300 text-[11px]">
-              GCS autopilot automatically inhibits full throttle climbs if Cylinder #3 CHT reaches 130°C.
-            </p>
+            {/* MISSION COMMANDS */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+              <div className="bg-gray-50 border-b border-gray-200 px-5 py-3">
+                <h2 className="font-black text-sm text-gray-800 tracking-widest uppercase flex items-center gap-2">
+                  <Terminal className="w-4 h-4 text-slate-700" />
+                  Mission Commands
+                </h2>
+              </div>
+              <div className="p-5 flex flex-wrap gap-3">
+                <button onClick={() => addEvent('Start Mission Initiated')} className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded font-black text-[10px] uppercase tracking-widest border border-green-700">Start Mission</button>
+                <button onClick={() => {toggleSimulation?.(); addEvent(isSimulationRunning ? 'Mission Paused' : 'Mission Resumed')}} className="px-5 py-2.5 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 rounded font-black text-[10px] uppercase tracking-widest">{isSimulationRunning ? 'Pause Mission' : 'Resume Mission'}</button>
+                <button onClick={() => addEvent('Executing Return To Base')} className="px-5 py-2.5 bg-white text-gray-700 border border-gray-300 hover:bg-blue-50 rounded font-black text-[10px] uppercase tracking-widest">Return To Base</button>
+                <button onClick={() => {resetTelemetryToNormal?.(); addEvent('Simulator Reset to Nominal')}} className="px-5 py-2.5 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 rounded font-black text-[10px] uppercase tracking-widest">Reset Simulator</button>
+                <button onClick={() => addEvent('Mission Aborted')} className="px-5 py-2.5 bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 rounded font-black text-[10px] uppercase tracking-widest ml-auto">Abort Mission</button>
+                <button onClick={() => addEvent('Emergency Mode Activated!')} className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded font-black text-[10px] uppercase tracking-widest border border-red-700">Emergency Mode</button>
+              </div>
+            </div>
+
+          </div>
+          
+          {/* RIGHT COLUMN: STATE & LOGS (4/12) */}
+          <div className="col-span-12 xl:col-span-4 space-y-6">
+            
+            {/* SIMULATOR STATE MONITOR */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-blue-50 border-b border-blue-100 px-5 py-3">
+                <h2 className="font-black text-sm text-blue-900 tracking-widest uppercase flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-blue-600" />
+                  Simulator State Monitor
+                </h2>
+              </div>
+              <div className="p-5 grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Phase</span>
+                  <span className="text-xs font-black text-gray-900">{activePhase}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Engine Load</span>
+                  <span className="text-xs font-black text-amber-600">{engineLoad}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Telemetry Rate</span>
+                  <span className="text-xs font-black text-green-600">20 Hz</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Active Faults</span>
+                  <span className={`text-xs font-black ${activeFaults?.length > 0 ? 'text-red-600' : 'text-gray-900'}`}>{activeFaults?.length ?? 0} DETECTED</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Engine Score</span>
+                  <span className="text-xs font-black text-gray-900">{healthIndex.toFixed(1)}%</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">AI Status</span>
+                  <span className="text-xs font-black text-blue-600">ONLINE</span>
+                </div>
+              </div>
+            </div>
+
+            {/* REAL-TIME IMPACT PANEL */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden h-[200px] flex flex-col">
+              <div className="bg-gray-50 border-b border-gray-200 px-5 py-3">
+                <h2 className="font-black text-sm text-gray-800 tracking-widest uppercase flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-amber-500" />
+                  Real-Time Impact
+                </h2>
+              </div>
+              <div className="p-5 flex-1 overflow-y-auto">
+                {!impactRecord ? (
+                  <div className="h-full flex items-center justify-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    Awaiting Command Input...
+                  </div>
+                ) : (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-1 rounded inline-block uppercase tracking-widest mb-3 border border-blue-200">
+                      {impactRecord.title}
+                    </div>
+                    <div className="space-y-2">
+                      {impactRecord.changes?.map((c, i) => (
+                        <div key={i} className="flex items-center justify-between text-xs font-mono">
+                          <span className="text-gray-500 font-bold uppercase tracking-wide">{c.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-400">{c.from}</span>
+                            <ArrowRight className="w-3 h-3 text-blue-500" />
+                            <span className="font-black text-gray-900">{c.to}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* AI DECISION CENTER */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-blue-50 border-b border-blue-100 px-5 py-3">
+                <h2 className="font-black text-sm text-blue-900 tracking-widest uppercase flex items-center gap-2">
+                  <Crosshair className="w-4 h-4 text-blue-600" />
+                  AI Decision Center
+                </h2>
+              </div>
+              <div className="p-5 space-y-3">
+                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest border-b border-gray-100 pb-2">
+                  <span className="text-gray-500">Mission Success Prob</span>
+                  <span className={`font-black ${isGo ? 'text-green-600' : 'text-amber-600'}`}>{(100 - riskScore).toFixed(1)}%</span>
+                </div>
+                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest border-b border-gray-100 pb-2">
+                  <span className="text-gray-500">Risk Level</span>
+                  <span className={`font-black ${isGo ? 'text-green-600' : 'text-red-600'}`}>{isGo ? 'LOW' : 'HIGH'}</span>
+                </div>
+                <div className="mt-3 pt-1">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Recommended Action</span>
+                  <div className={`p-2 rounded border text-[11px] font-black uppercase tracking-widest text-center ${
+                    isGo ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'
+                  }`}>
+                    {isGo ? 'CONTINUE CURRENT PHASE' : 'ABORT. RETURN TO BASE.'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SIMULATOR EVENT LOG */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-[250px]">
+              <div className="bg-gray-50 border-b border-gray-200 px-5 py-3">
+                <h2 className="font-black text-sm text-gray-800 tracking-widest uppercase flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-blue-600" />
+                  Simulator Event Log
+                </h2>
+              </div>
+              <div className="p-4 overflow-y-auto flex-1 bg-gray-50 space-y-2 font-mono">
+                {eventLog?.map((log, idx) => (
+                  <div key={idx} className="flex gap-3 text-xs pb-2 border-b border-gray-200 last:border-0">
+                    <span className="text-gray-400 font-bold shrink-0">{log.time}</span>
+                    <span className="text-gray-800 font-semibold">{log.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };
