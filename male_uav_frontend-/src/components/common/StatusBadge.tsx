@@ -15,37 +15,37 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', p
       case 'OPTIMAL':
       case 'ACTIVE':
         return {
-          bg: 'bg-emerald-500/10',
-          border: 'border-emerald-500/30',
-          text: 'text-emerald-400',
-          dot: 'bg-emerald-400',
+          bg: 'bg-green-100',
+          border: 'border-green-300',
+          text: 'text-green-900',
+          dot: 'bg-green-600',
           label: status,
         };
       case 'WARNING':
       case 'ELEVATED':
       case 'NOTICE':
         return {
-          bg: 'bg-amber-500/10',
-          border: 'border-amber-500/30',
-          text: 'text-amber-400',
-          dot: 'bg-amber-400',
+          bg: 'bg-amber-100',
+          border: 'border-amber-300',
+          text: 'text-amber-900',
+          dot: 'bg-amber-600',
           label: status,
         };
       case 'CRITICAL':
       case 'DISPARITY':
         return {
-          bg: 'bg-red-500/10',
-          border: 'border-red-500/30',
-          text: 'text-red-400',
-          dot: 'bg-red-500',
+          bg: 'bg-red-100',
+          border: 'border-red-300',
+          text: 'text-red-900',
+          dot: 'bg-red-600',
           label: status,
         };
       case 'MAINTENANCE':
         return {
-          bg: 'bg-purple-500/10',
-          border: 'border-purple-500/30',
-          text: 'text-purple-400',
-          dot: 'bg-purple-400',
+          bg: 'bg-purple-100',
+          border: 'border-purple-300',
+          text: 'text-purple-900',
+          dot: 'bg-purple-600',
           label: status,
         };
       case 'OFFLINE':
@@ -53,10 +53,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', p
       case 'INFO':
       default:
         return {
-          bg: 'bg-[#15171A]',
-          border: 'border-[#2A2D33]',
-          text: 'text-gray-400',
-          dot: 'bg-gray-500',
+          bg: 'bg-slate-100',
+          border: 'border-slate-300',
+          text: 'text-slate-800',
+          dot: 'bg-slate-500',
           label: status,
         };
     }

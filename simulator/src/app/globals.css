@@ -1,2 +1,149 @@
 @import "tailwindcss";
-body { background: #000; color: #0f0; font-family: monospace; }
+
+/* ═══════════════════════════════════════════════
+   SIMULATOR — Pure Black Maximum Contrast Theme
+   Plain CSS only — no escaped Tailwind selectors
+   ═══════════════════════════════════════════════ */
+
+/* ── Base body ── */
+body {
+  background: #F8FAFC;
+  color: #000000;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Headings: pure black + bold ── */
+h1, h2, h3, h4, h5, h6 {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+/* ── All paragraphs and spans inherit black ── */
+p { color: #000000; font-weight: 500; }
+
+/* ── Force bold weight on all buttons ── */
+button {
+  font-weight: 700 !important;
+}
+
+/* ── Forms ── */
+input, select, textarea {
+  color: #000000 !important;
+  font-weight: 500 !important;
+  background-color: #FFFFFF !important;
+}
+select option {
+  color: #000000;
+  background: #FFFFFF;
+}
+
+/* ── pre / code (telemetry JSON page) ── */
+pre, code {
+  color: #0F172A !important;
+  background-color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem;
+}
+
+/* ── Nav ── */
+nav {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+/* ── Main area ── */
+main {
+  background-color: #F8FAFC !important;
+  color: #000000 !important;
+}
+
+/* ── Tailwind standard color class overrides ── */
+/* These use plain class names — safe for PostCSS */
+
+/* text-white → black on white bg */
+.text-white   { color: #000000 !important; font-weight: 700 !important; }
+
+/* Grays: push all to dark */
+.text-gray-100, .text-gray-200, .text-gray-300 { color: #000000 !important; font-weight: 600 !important; }
+.text-gray-400 { color: #1E293B !important; font-weight: 600 !important; }
+.text-gray-500 { color: #334155 !important; font-weight: 500 !important; }
+.text-gray-600 { color: #334155 !important; font-weight: 500 !important; }
+
+.text-slate-100, .text-slate-200, .text-slate-300 { color: #000000 !important; font-weight: 600 !important; }
+.text-slate-400 { color: #1E293B !important; font-weight: 600 !important; }
+.text-slate-500 { color: #334155 !important; font-weight: 500 !important; }
+.text-slate-600 { color: #334155 !important; font-weight: 500 !important; }
+
+/* Semantic — darkened for max contrast on white */
+.text-green-400, .text-green-500 { color: #15803D !important; font-weight: 700 !important; }
+.text-green-600 { color: #14532D !important; font-weight: 700 !important; }
+.text-green-700 { color: #14532D !important; font-weight: 700 !important; }
+
+.text-amber-400, .text-amber-500 { color: #B45309 !important; font-weight: 700 !important; }
+.text-amber-600, .text-amber-700 { color: #92400E !important; font-weight: 700 !important; }
+
+.text-red-400, .text-red-500 { color: #B91C1C !important; font-weight: 700 !important; }
+.text-red-600, .text-red-700 { color: #7F1D1D !important; font-weight: 700 !important; }
+
+.text-blue-400, .text-blue-500 { color: #1D4ED8 !important; font-weight: 700 !important; }
+.text-blue-600, .text-blue-700 { color: #1E3A8A !important; font-weight: 700 !important; }
+
+/* Font weight utilities */
+.font-bold, .font-extrabold, .font-black { color: #000000 !important; }
+.font-semibold { color: #000000 !important; }
+.font-medium   { color: #1E293B !important; }
+.font-mono     { font-weight: 700 !important; color: #000000 !important; }
+
+/* Tracking / uppercase labels */
+.tracking-widest { color: #1E293B !important; font-weight: 700 !important; }
+.tracking-wider  { color: #1E293B !important; font-weight: 700 !important; }
+.uppercase        { font-weight: 700 !important; }
+
+/* Dark surface classes → white */
+.bg-black, .bg-gray-900, .bg-gray-950 {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+/* Border overrides */
+.border-gray-900, .border-gray-800 { border-color: #E2E8F0 !important; }
+
+/* Status badge backgrounds */
+.bg-green-50   { background-color: #F0FDF4 !important; }
+.bg-amber-50   { background-color: #FFFBEB !important; }
+.bg-red-50     { background-color: #FEF2F2 !important; }
+.bg-blue-50    { background-color: #EFF6FF !important; }
+.bg-green-100  { background-color: #DCFCE7 !important; }
+.bg-amber-100  { background-color: #FEF3C7 !important; }
+.bg-red-100    { background-color: #FEE2E2 !important; }
+.bg-blue-100   { background-color: #DBEAFE !important; }
+
+/* WS bar status */
+.bg-green-950  { background-color: #F0FDF4 !important; }
+.bg-red-950    { background-color: #FEF2F2 !important; }
+.border-green-900 { border-color: #BBF7D0 !important; }
+.border-red-900   { border-color: #FECACA !important; }
+.text-green-400   { color: #15803D !important; font-weight: 700 !important; }
+.text-red-400     { color: #B91C1C !important; font-weight: 700 !important; }
+
+/* Nav active link */
+.bg-blue-900 { background-color: #2563EB !important; }
+
+/* Health page large number */
+.text-7xl { font-weight: 900 !important; }
+.text-6xl { font-weight: 900 !important; }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: #F1F5F9; }
+::-webkit-scrollbar-thumb  { background: #94A3B8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2563EB; }
+
+/* Page fade-in */
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: pageFadeIn 200ms ease forwards; }

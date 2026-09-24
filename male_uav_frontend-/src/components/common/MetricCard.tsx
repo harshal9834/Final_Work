@@ -29,26 +29,22 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   const getStatusBorder = () => {
     switch (status) {
       case 'CRITICAL':
-        return 'border-red-500/40 bg-red-950/20 hover:border-red-400';
+        return 'border-red-200 bg-red-50 hover:border-red-400';
       case 'WARNING':
-        return 'border-amber-500/40 bg-amber-950/20 hover:border-amber-400';
+        return 'border-amber-200 bg-amber-50 hover:border-amber-400';
       case 'HIGHLIGHT':
-        return 'border-blue-500/40 bg-blue-950/20 hover:border-blue-400';
+        return 'border-blue-200 bg-blue-50 hover:border-blue-400';
       default:
-        return 'border-[#2A2D33] bg-[#15171A]/80 hover:border-gray-600';
+        return 'border-[#E2E8F0] bg-white hover:border-blue-300';
     }
   };
 
   const getChangeColor = () => {
     switch (changeType) {
-      case 'positive':
-        return 'text-emerald-400';
-      case 'negative':
-        return 'text-red-400';
-      case 'warning':
-        return 'text-amber-400';
-      default:
-        return 'text-gray-400';
+      case 'positive':  return 'text-green-700';
+      case 'negative':  return 'text-red-700';
+      case 'warning':   return 'text-amber-700';
+      default:          return 'text-[#334155]';
     }
   };
 
@@ -63,21 +59,21 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono-code font-bold text-gray-500 uppercase tracking-widest">
+            <span className="text-[10px] font-mono-code font-bold text-[#1E293B] uppercase tracking-widest">
               {title}
             </span>
             {badge && (
-              <span className="metric-card-badge text-[9px] font-mono-code px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-300 font-bold border border-blue-500/30">
+              <span className="metric-card-badge text-[9px] font-mono-code px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 font-bold border border-blue-200">
                 {badge}
               </span>
             )}
           </div>
           <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="metric-card-value font-mono-code font-bold text-2xl tracking-tight text-white">
+            <span className="metric-card-value font-mono-code font-bold text-2xl tracking-tight text-[#000000]">
               {typeof value === 'number' ? (Number.isInteger(value) ? value : Number(value.toFixed(2))) : value}
             </span>
             {unit && (
-              <span className="text-xs font-mono-code text-gray-400 uppercase">
+              <span className="text-xs font-mono-code text-[#334155] font-bold uppercase">
                 {unit}
               </span>
             )}
@@ -85,21 +81,21 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         </div>
 
         {Icon && (
-          <div className="p-2 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
+          <div className="p-2 rounded bg-blue-50 border border-blue-200 text-blue-600 group-hover:scale-105 transition-transform">
             <Icon className="w-4 h-4" />
           </div>
         )}
       </div>
 
       {(change || subtext) && (
-        <div className="mt-2 pt-2 border-t border-[#2A2D33] flex items-center justify-between text-[10px] font-mono-code">
+        <div className="mt-2 pt-2 border-t border-[#E2E8F0] flex items-center justify-between text-[10px] font-mono-code">
           {change && (
             <span className={`font-semibold ${getChangeColor()}`}>
               {change}
             </span>
           )}
           {subtext && (
-            <span className="metric-card-subtext text-gray-400 truncate max-w-[180px]">
+            <span className="metric-card-subtext text-[#334155] font-medium truncate max-w-[180px]">
               {subtext}
             </span>
           )}

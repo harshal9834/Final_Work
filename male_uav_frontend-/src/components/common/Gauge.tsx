@@ -56,16 +56,16 @@ export const Gauge: React.FC<GaugeProps> = ({
   const diffFromExpected = expectedValue !== undefined ? value - expectedValue : null;
 
   return (
-    <div className="flex flex-col items-center justify-center p-3.5 bg-[#15171A]/80 panel-border rounded relative overflow-hidden group hover:border-gray-600 transition-all">
+    <div className="flex flex-col items-center justify-center p-3.5 bg-white panel-border rounded relative overflow-hidden group hover:border-blue-300 transition-all">
       <div className="scan-line" />
       
       {/* Top Label & Status */}
-      <div className="w-full flex items-center justify-between text-[11px] font-mono-code font-bold text-[#F1F5F9] uppercase tracking-widest mb-1 z-10">
-        <span className="truncate">{label}</span>
+      <div className="w-full flex items-center justify-between text-[11px] font-mono-code font-bold text-[#000000] uppercase tracking-widest mb-1 z-10">
+        <span className="truncate font-bold text-[#000000]">{label}</span>
         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border shadow-sm ${
-          isCritical ? 'bg-red-950/80 text-red-300 border-red-500/60' :
-          isWarning ? 'bg-amber-950/80 text-amber-300 border-amber-500/60' :
-          'bg-blue-950/80 text-blue-300 border-blue-500/60'
+          isCritical ? 'bg-red-100 text-red-900 border-red-300' :
+          isWarning  ? 'bg-amber-100 text-amber-900 border-amber-300' :
+                       'bg-blue-100 text-blue-900 border-blue-300'
         }`}>
           {isCritical ? 'CRIT' : isWarning ? 'WARN' : 'NORM'}
         </span>
@@ -85,7 +85,7 @@ export const Gauge: React.FC<GaugeProps> = ({
             cy={center}
             r={radius}
             fill="none"
-            stroke="#2A3241"
+            stroke="#E2E8F0"
             strokeWidth={strokeWidth}
             strokeDasharray={`${arcLength} ${circumference}`}
             strokeLinecap="round"
@@ -106,33 +106,30 @@ export const Gauge: React.FC<GaugeProps> = ({
           />
         </svg>
 
-        {/* Center Digital Readout (Bright #F8FAFC + #60A5FA Unit) */}
+        {/* Center Digital Readout */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
-          <span 
-            className="font-mono-code font-extrabold text-2xl md:text-3xl tracking-wide text-[#F8FAFC]"
-            style={{ textShadow: '0 0 10px rgba(255, 255, 255, 0.25)' }}
-          >
+          <span className="font-mono-code font-extrabold text-2xl md:text-3xl tracking-wide text-[#000000]">
             {value.toFixed(decimals)}
           </span>
-          <span className="text-[12px] font-mono-code text-[#60A5FA] font-bold uppercase tracking-widest mt-0.5">
+          <span className="text-[12px] font-mono-code text-[#1D4ED8] font-bold uppercase tracking-widest mt-0.5">
             {unit}
           </span>
         </div>
       </div>
 
-      {/* Footer Details: Range & Expected Comparison */}
-      <div className="w-full flex items-center justify-between text-[11px] font-mono-code text-[#B7C0D1] mt-1 pt-1.5 border-t border-[#2A2D33] z-10 font-bold">
-        <span>MIN: {min}</span>
+      {/* Footer Details */}
+      <div className="w-full flex items-center justify-between text-[11px] font-mono-code text-[#334155] mt-1 pt-1.5 border-t border-[#E2E8F0] z-10 font-bold">
+        <span className="text-[#334155] font-bold">MIN: {min}</span>
         {diffFromExpected !== null && (
-          <span 
+          <span
             className="font-extrabold"
-            style={{ color: diffFromExpected > 0 ? '#00F5A0' : '#FF6B6B' }}
+            style={{ color: diffFromExpected > 0 ? '#15803D' : '#B91C1C' }}
           >
             Δ {diffFromExpected > 0 ? `+${diffFromExpected.toFixed(decimals)}` : diffFromExpected.toFixed(decimals)}
           </span>
         )}
-        {subtext && <span className="text-[#B7C0D1]">{subtext}</span>}
-        <span>MAX: {max}</span>
+        {subtext && <span className="text-[#334155] font-bold">{subtext}</span>}
+        <span className="text-[#334155] font-bold">MAX: {max}</span>
       </div>
     </div>
   );

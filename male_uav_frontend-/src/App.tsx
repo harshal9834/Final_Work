@@ -49,36 +49,36 @@ const MainLayout: React.FC = () => {
 
   if (!systemReady) {
     return (
-      <div className="fixed inset-0 bg-[#0A0B0D] text-slate-100 font-mono-code z-50 flex flex-col items-center justify-center p-6 space-y-6">
+      <div className="fixed inset-0 bg-[#F8FAFC] text-[#0F172A] font-mono-code z-50 flex flex-col items-center justify-center p-6 space-y-6">
         <div className="relative flex items-center justify-center">
-          <div className="w-24 h-24 rounded-full border-4 border-slate-800 border-t-cyan-400 animate-spin" />
-          <div className="w-16 h-16 rounded-full border-4 border-slate-800 border-b-indigo-500 animate-spin absolute" style={{ animationDirection: 'reverse' }} />
+          <div className="w-24 h-24 rounded-full border-4 border-[#E2E8F0] border-t-blue-500 animate-spin" />
+          <div className="w-16 h-16 rounded-full border-4 border-[#E2E8F0] border-b-indigo-400 animate-spin absolute" style={{ animationDirection: 'reverse' }} />
         </div>
 
         <div className="text-center space-y-2">
-          <span className="px-3 py-1 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 text-xs font-bold uppercase tracking-widest animate-pulse">
+          <span className="px-3 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold uppercase tracking-widest animate-pulse">
             DRDO GCS MISSION INITIALIZATION
           </span>
-          <h2 className="font-heading font-bold text-2xl text-slate-100 tracking-wider">
+          <h2 className="font-heading font-bold text-2xl text-[#0F172A] tracking-wider">
             Restoring Mission &amp; Subsystem State...
           </h2>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">
+          <p className="text-xs text-[#64748B] max-w-md mx-auto">
             Synchronizing TimescaleDB telemetry snapshots, restoring active fault vectors, Digital Twin CAD state &amp; AI prognostics.
           </p>
         </div>
 
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl p-3 text-[11px] space-y-2">
-          <div className="flex justify-between items-center text-slate-300">
+        <div className="w-full max-w-md bg-white border border-[#E2E8F0] rounded-xl p-3 text-[11px] space-y-2 shadow-sm">
+          <div className="flex justify-between items-center text-[#475569]">
             <span>Database Connection (TimescaleDB):</span>
-            <span className="text-emerald-400 font-bold">CONNECTED</span>
+            <span className="text-green-600 font-bold">CONNECTED</span>
           </div>
-          <div className="flex justify-between items-center text-slate-300">
+          <div className="flex justify-between items-center text-[#475569]">
             <span>SCADA Avionics Stream:</span>
-            <span className="text-cyan-400 font-bold">SYNCHRONIZING</span>
+            <span className="text-blue-600 font-bold">SYNCHRONIZING</span>
           </div>
-          <div className="flex justify-between items-center text-slate-300">
+          <div className="flex justify-between items-center text-[#475569]">
             <span>Digital Twin 3D State:</span>
-            <span className="text-indigo-400 font-bold">RESTORING</span>
+            <span className="text-indigo-500 font-bold">RESTORING</span>
           </div>
         </div>
       </div>
@@ -125,7 +125,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-[#0A0B0D] text-[#E0E2E5] flex flex-col selection:bg-blue-500/30 selection:text-white ${
+    <div className={`min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col selection:bg-blue-500/20 selection:text-blue-900 ${
       nightVisionMode ? 'theme-night-vision' : ''
     }`}>
       {/* Tactical Header Navbar */}
@@ -137,7 +137,7 @@ const MainLayout: React.FC = () => {
         <Sidebar />
 
         {/* Dynamic Main Viewport Canvas */}
-        <main className="flex-1 overflow-y-auto bg-[#0A0B0D] relative grid-bg custom-scrollbar">
+        <main className="flex-1 overflow-y-auto bg-[#F8FAFC] relative grid-bg custom-scrollbar">
           <div key={activeTab} className="relative z-10 page-fade-in">
             {renderActiveView()}
           </div>
@@ -145,26 +145,26 @@ const MainLayout: React.FC = () => {
       </div>
 
       {/* Professional Polish Tactical Footer */}
-      <footer className="h-9 bg-[#111318] border-t border-[#2A2D33] px-4 sm:px-6 flex items-center justify-between text-[10px] text-gray-400 uppercase monospace shrink-0 z-20">
+      <footer className="h-9 bg-white border-t border-[#E2E8F0] px-4 sm:px-6 flex items-center justify-between text-[10px] text-[#334155] uppercase monospace shrink-0 z-20">
         <div className="flex items-center gap-4 sm:gap-6 overflow-x-auto">
-          <div className="flex items-center gap-1.5 whitespace-nowrap">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 led-glow"></span>
+          <div className="flex items-center gap-1.5 whitespace-nowrap font-semibold">
+            <span className="w-2 h-2 rounded-full bg-green-500 led-glow"></span>
             <span>Telemetry: 20Hz Link-A Active</span>
           </div>
-          <div className="flex items-center gap-1.5 whitespace-nowrap hidden sm:flex">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 led-glow"></span>
+          <div className="flex items-center gap-1.5 whitespace-nowrap hidden sm:flex font-semibold">
+            <span className="w-2 h-2 rounded-full bg-green-500 led-glow"></span>
             <span>AI Neural Engine: Nominal</span>
           </div>
-          <div className="flex items-center gap-1.5 whitespace-nowrap hidden md:flex">
+          <div className="flex items-center gap-1.5 whitespace-nowrap hidden md:flex font-semibold">
             <span className="w-2 h-2 rounded-full bg-blue-500 led-glow"></span>
             <span>DT Sync: 2.4ms Latency</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3 whitespace-nowrap">
-          <span className="text-gray-400">System Build: <strong className="text-blue-400">v4.2.8-STABLE</strong></span>
-          <span className="text-gray-700 hidden sm:inline">|</span>
-          <span className="text-amber-500/90 font-bold hidden sm:inline">DRDO ADE RESTRICTED</span>
+          <span className="text-[#334155] font-semibold">System Build: <strong className="text-[#1E40AF] font-bold">v4.2.8-STABLE</strong></span>
+          <span className="text-[#CBD5E1] hidden sm:inline">|</span>
+          <span className="text-amber-800 font-bold hidden sm:inline">DRDO ADE RESTRICTED</span>
         </div>
       </footer>
 

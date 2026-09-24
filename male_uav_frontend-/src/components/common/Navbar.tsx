@@ -76,18 +76,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleChat, isChatOpen }) => {
     <header className={`w-full border-b transition-colors z-40 ${
       nightVisionMode 
         ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-300' 
-        : 'bg-[#111318] border-[#2A2D33] text-[#E0E2E5]'
-    } backdrop-blur-md sticky top-0`}>
+        : 'bg-white border-[#E2E8F0] text-[#0F172A]'
+    } backdrop-blur-md sticky top-0 shadow-sm`}>
       {/* Top micro classification banner */}
-      <div className="w-full bg-[#171012] border-b border-red-900/40 py-0.5 px-4 flex items-center justify-between text-[11px] font-mono-code font-bold tracking-widest text-red-400">
+      <div className="w-full bg-red-50 border-b border-red-100 py-0.5 px-4 flex items-center justify-between text-[11px] font-mono-code font-bold tracking-widest text-red-600">
         <div className="flex items-center gap-2">
           <span className="inline-block w-2 h-2 rounded-full bg-red-500 led-glow"></span>
           <span>RESTRICTED // DRDO-ADE // MALE UAV DIGITAL TWIN GROUND STATION // OPERATIONAL NODE 03</span>
         </div>
-        <div className="flex items-center gap-4 hidden sm:flex text-gray-400">
+        <div className="flex items-center gap-4 hidden sm:flex text-[#334155] font-semibold">
           <span>SEC: CLASS-IV TOP SECRET</span>
           <span>CYBER: AES-GCM-256</span>
-          <span className="text-emerald-400">LINK: KU-BAND SATCOM 99.8%</span>
+          <span className="text-green-800 font-bold">LINK: KU-BAND SATCOM 99.8%</span>
         </div>
       </div>
 
@@ -95,83 +95,82 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleChat, isChatOpen }) => {
       <div className="px-4 py-2 flex items-center justify-between gap-3">
         {/* Left: DRDO Insignia & UAV Select */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2.5 border-r border-[#2A2D33] pr-3.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shadow-lg text-blue-400">
+          <div className="flex items-center gap-2.5 border-r border-[#E2E8F0] pr-3.5">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center shadow-sm text-blue-600">
               <Shield className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-xs tracking-widest text-blue-400 uppercase">DRDO | GCS-X1</span>
-                <span className="px-1.5 py-0.2 bg-blue-500/10 border border-blue-500/30 rounded text-[9px] font-mono-code text-blue-300 font-semibold uppercase">
+                <span className="font-bold text-xs tracking-widest text-blue-600 uppercase">DRDO | GCS-X1</span>
+                <span className="px-1.5 py-0.2 bg-blue-50 border border-blue-200 rounded text-[9px] font-mono-code text-blue-700 font-semibold uppercase">
                   Digital Twin
                 </span>
               </div>
-              <p className="text-[10px] text-gray-400 font-mono-code uppercase leading-tight">
+              <p className="text-[10px] text-[#334155] font-mono-code font-semibold uppercase leading-tight">
                 Aero Piston Twin
               </p>
             </div>
           </div>
 
           {/* Active UAV Selector */}
-          <div className="flex items-center gap-2 bg-[#15171A] border border-[#2A2D33] rounded px-2.5 py-1">
-            <Radio className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
-            <span className="text-[10px] font-mono-code text-gray-400 uppercase">UAV:</span>
+          <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded px-2.5 py-1">
+            <Radio className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
+            <span className="text-[10px] font-mono-code text-[#334155] font-bold uppercase">UAV:</span>
             <select
               value={selectedUav.id}
               onChange={(e) => setSelectedUavId(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-white outline-none cursor-pointer pr-1"
+              className="bg-transparent text-xs font-semibold text-[#0F172A] outline-none cursor-pointer pr-1"
             >
               {uavFleet.map((uav) => (
-                <option key={uav.id} value={uav.id} className="bg-[#111318] text-white">
+                <option key={uav.id} value={uav.id} className="bg-white text-[#0F172A]">
                   {uav.callsign} ({uav.engineHealthIndex.toFixed(0)}% HLT)
                 </option>
               ))}
             </select>
             <span className={`w-2 h-2 rounded-full led-glow ${
-              selectedUav.status === 'ACTIVE_MISSION' ? 'bg-emerald-500' :
+              selectedUav.status === 'ACTIVE_MISSION' ? 'bg-green-500' :
               selectedUav.status === 'MAINTENANCE' ? 'bg-amber-500' : 'bg-blue-500'
             }`} />
           </div>
 
           {/* Mission Tag */}
-          <div className="hidden xl:flex items-center gap-2 bg-[#15171A] border border-[#2A2D33] rounded px-2.5 py-1 text-xs">
-            <Compass className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-[10px] font-mono-code text-gray-400 uppercase">MSN:</span>
-            <span className="font-mono-code font-bold text-white text-xs">{mission.codeName.split(' - ')[0]}</span>
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono-code font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+          <div className="hidden xl:flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded px-2.5 py-1 text-xs">
+            <Compass className="w-3.5 h-3.5 text-blue-500" />
+            <span className="text-[10px] font-mono-code text-[#334155] font-bold uppercase">MSN:</span>
+            <span className="font-mono-code font-bold text-[#000000] text-xs">{mission.codeName.split(' - ')[0]}</span>
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono-code font-bold bg-green-100 text-green-900 border border-green-300">
               {mission.phase.replace(/_/g, ' ')}
             </span>
           </div>
         </div>
 
-        {/* Center: Tactical Key Indicators */}
-        <div className="hidden lg:flex items-center gap-4">
-          <div className="flex items-center gap-3 bg-[#15171A] border border-[#2A2D33] rounded px-3 py-1 text-xs font-mono-code">
+          <div className="hidden lg:flex items-center gap-4">
+          <div className="flex items-center gap-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded px-3 py-1 text-xs font-mono-code">
             <div className="flex items-center gap-1.5">
-              <span className="text-gray-400 text-[10px] uppercase">Engine HLT:</span>
+              <span className="text-[#334155] text-[10px] font-bold uppercase">Engine HLT:</span>
               <span className={`font-bold ${
-                selectedUav.engineHealthIndex > 80 ? 'text-emerald-400' :
-                selectedUav.engineHealthIndex > 65 ? 'text-amber-400' : 'text-red-400'
+                selectedUav.engineHealthIndex > 80 ? 'text-green-800' :
+                selectedUav.engineHealthIndex > 65 ? 'text-amber-800' : 'text-red-800'
               }`}>
                 {selectedUav.engineHealthIndex.toFixed(1)}%
               </span>
             </div>
-            <div className="h-3 w-px bg-[#2A2D33]" />
+            <div className="h-3 w-px bg-[#D1D5DB]" />
             <div className="flex items-center gap-1.5">
-              <span className="text-gray-400 text-[10px] uppercase">RUL:</span>
-              <span className="font-bold text-blue-400">{selectedUav.predictedRulHours} hrs</span>
+              <span className="text-[#334155] text-[10px] font-bold uppercase">RUL:</span>
+              <span className="font-bold text-[#1E40AF]">{selectedUav.predictedRulHours} hrs</span>
             </div>
-            <div className="h-3 w-px bg-[#2A2D33]" />
+            <div className="h-3 w-px bg-[#D1D5DB]" />
             <div className="flex items-center gap-1.5">
-              <span className="text-gray-400 text-[10px] uppercase">Twin Sync:</span>
-              <span className="font-bold text-emerald-400">{selectedUav.twinConfidenceScore}%</span>
+              <span className="text-[#334155] text-[10px] font-bold uppercase">Twin Sync:</span>
+              <span className="font-bold text-green-800">{selectedUav.twinConfidenceScore}%</span>
             </div>
-            <div className="h-3 w-px bg-[#2A2D33]" />
+            <div className="h-3 w-px bg-[#D1D5DB]" />
             <div className="flex items-center gap-1.5">
-              <span className="text-gray-400 text-[10px] uppercase">Decision:</span>
+              <span className="text-[#334155] text-[10px] font-bold uppercase">Decision:</span>
               <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                selectedUav.missionRiskScore < 25 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' :
-                selectedUav.missionRiskScore < 60 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'
+                selectedUav.missionRiskScore < 25 ? 'bg-green-100 text-green-900 border border-green-300' :
+                selectedUav.missionRiskScore < 60 ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-red-100 text-red-900 border border-red-300'
               }`}>
                 {selectedUav.missionRiskScore < 25 ? 'GO FLIGHT' : 'OBSERVE'}
               </span>
@@ -181,47 +180,47 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleChat, isChatOpen }) => {
 
         {/* Right: Telemetry Controls & Clocks */}
         <div className="flex items-center gap-2">
-          {/* Dual Clock in exact theme format */}
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-[#15171A] rounded border border-[#2A2D33]">
-            <span className="text-[10px] font-bold text-gray-400 uppercase">UTC</span>
-            <span className="text-xs font-mono-code font-bold text-white">{utcTime.replace(' UTC', '')}</span>
+          {/* Dual Clock */}
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-[#F8FAFC] rounded border border-[#E2E8F0]">
+            <span className="text-[10px] font-bold text-[#334155] uppercase">UTC</span>
+            <span className="text-xs font-mono-code font-bold text-[#000000]">{utcTime.replace(' UTC', '')}</span>
           </div>
 
-          {/* Demo Tour Button (For Judges / Evaluators) */}
+          {/* Demo Tour Button */}
           <button
             onClick={startDemoTour}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-2.5 py-1.5 rounded shadow border border-blue-400/40 transition-transform active:scale-95"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-2.5 py-1.5 rounded shadow border border-blue-500 transition-transform active:scale-95"
             title="Launch Interactive Innovation Tour for Judges"
           >
             <Sparkles className="w-3.5 h-3.5 text-blue-200" />
             <span className="hidden sm:inline">JUDGE TOUR</span>
           </button>
 
-          {/* Global Dark Mode / Light Mode Theme Switcher */}
+          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-amber-500/60 bg-amber-950/40 text-amber-300 hover:bg-amber-900/60 hover:text-white transition-all font-mono-code font-bold text-xs shadow-lg shadow-amber-950/40"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-[#E2E8F0] bg-[#F8FAFC] text-[#475569] hover:bg-[#EFF6FF] hover:text-blue-600 hover:border-blue-300 transition-all font-mono-code font-bold text-xs"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             {theme === 'dark' ? (
               <>
-                <Sun className="w-4 h-4 text-amber-400" />
+                <Sun className="w-4 h-4 text-amber-500" />
                 <span>LIGHT MODE</span>
               </>
             ) : (
               <>
-                <Moon className="w-4 h-4 text-indigo-400" />
-                <span className="text-indigo-300">DARK MODE</span>
+                <Moon className="w-4 h-4 text-[#475569]" />
+                <span>DARK MODE</span>
               </>
             )}
           </button>
 
-          {/* Quick Simulation Toggles */}
-          <div className="flex items-center bg-[#15171A] border border-[#2A2D33] rounded p-0.5">
+          {/* Simulation Toggles */}
+          <div className="flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded p-0.5">
             <button
               onClick={toggleSimulation}
               className={`p-1.5 rounded text-xs transition-colors ${
-                isSimulationRunning ? 'text-emerald-400 hover:bg-[#2A2D33]' : 'text-amber-400 bg-amber-950/60'
+                isSimulationRunning ? 'text-green-600 hover:bg-[#EFF6FF]' : 'text-amber-600 bg-amber-50'
               }`}
               title={isSimulationRunning ? 'Pause live telemetry stream' : 'Resume live stream'}
             >
@@ -229,48 +228,46 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleChat, isChatOpen }) => {
             </button>
             <button
               onClick={resetTelemetryToNormal}
-              className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-[#2A2D33] rounded transition-colors"
+              className="p-1.5 text-[#64748B] hover:text-blue-600 hover:bg-[#EFF6FF] rounded transition-colors"
               title="Reset all engine parameters to nominal"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Audio Voice Alert Annunciator Toggle */}
+          {/* Voice Alerts */}
           <button
             onClick={() => setVoiceAlertsEnabled(!voiceAlertsEnabled)}
             className={`p-2 rounded border transition-colors ${
               voiceAlertsEnabled 
-                ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' 
-                : 'bg-[#15171A] border-[#2A2D33] text-gray-500'
+                ? 'bg-blue-50 border-blue-200 text-blue-600' 
+                : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#94A3B8]'
             }`}
             title={voiceAlertsEnabled ? 'Acoustic Voice Alerts Enabled' : 'Voice Alerts Muted'}
           >
-            {voiceAlertsEnabled ? <Volume2 className="w-4 h-4 text-blue-400" /> : <VolumeX className="w-4 h-4" />}
+            {voiceAlertsEnabled ? <Volume2 className="w-4 h-4 text-blue-600" /> : <VolumeX className="w-4 h-4" />}
           </button>
 
-          {/* Night Vision / HUD Mode Toggle */}
+          {/* Night Vision Toggle */}
           <button
             onClick={toggleNightVisionMode}
             className={`p-2 rounded border transition-colors hidden sm:flex ${
               nightVisionMode 
                 ? 'bg-emerald-900/60 border-emerald-600 text-emerald-300' 
-                : 'bg-[#15171A] border-[#2A2D33] text-gray-400 hover:text-white'
+                : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#64748B] hover:text-blue-600 hover:border-blue-300'
             }`}
             title="Toggle Tactical Night HUD filter"
           >
             {nightVisionMode ? <Moon className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
 
-
-
-          {/* Tactical Copilot Chat Toggle */}
+          {/* AI Copilot Chat */}
           <button
             onClick={onToggleChat}
             className={`p-2 rounded border transition-colors relative ${
               isChatOpen 
-                ? 'bg-blue-900/30 border-blue-500/50 text-blue-300' 
-                : 'bg-[#15171A] border-[#2A2D33] text-gray-400 hover:text-blue-400'
+                ? 'bg-blue-50 border-blue-300 text-blue-600' 
+                : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#64748B] hover:text-blue-600 hover:border-blue-300'
             }`}
             title="Open AI Tactical Copilot Assistant"
           >
@@ -281,7 +278,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleChat, isChatOpen }) => {
           {/* Alerts Bell */}
           <button
             onClick={() => setActiveTab('alerts')}
-            className="p-2 rounded bg-[#15171A] border border-[#2A2D33] text-gray-300 hover:text-red-400 relative transition-colors"
+            className="p-2 rounded bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B] hover:text-red-600 hover:border-red-200 relative transition-colors"
             title="Open Alarm Center"
           >
             <Bell className="w-4 h-4" />
@@ -295,7 +292,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleChat, isChatOpen }) => {
           {/* Fullscreen */}
           <button
             onClick={toggleFullScreen}
-            className="p-2 rounded bg-[#15171A] border border-[#2A2D33] text-gray-400 hover:text-blue-400 transition-colors hidden md:flex"
+            className="p-2 rounded bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B] hover:text-blue-600 hover:border-blue-300 transition-colors hidden md:flex"
             title="Toggle Fullscreen GCS Display"
           >
             <Maximize2 className="w-4 h-4" />

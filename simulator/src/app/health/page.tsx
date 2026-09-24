@@ -1,22 +1,32 @@
 "use client";
-
 import { useTelemetryStore } from '@/stores/telemetryStore';
-export const Val = ({ l, v, u, warn=false, crit=false }: any) => (
-  <div className="flex justify-between text-sm py-1 border-b border-gray-900/50">
-    <span className="text-gray-400">{l}</span>
-    <span className={crit ? 'text-red-500 font-bold' : warn ? 'text-amber-500 font-bold' : 'text-green-400 font-bold'}>
-      {typeof v === 'number' ? v.toFixed(1) : v} {u && <span className="text-gray-600 font-normal">{u}</span>}
-    </span>
-  </div>
-);
 
 export default function HealthPage() {
   const tel = useTelemetryStore(); const p = tel.packet || {};
+  const health = p.health ?? 100;
+  const healthColor = health >= 80 ? '#16A34A' : health >= 60 ? '#D97706' : '#DC2626';
+  const healthBg    = health >= 80 ? 'bg-green-50 border-green-200' : health >= 60 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200';
+  const healthLabel = health >= 80 ? 'NOMINAL' : health >= 60 ? 'DEGRADED' : 'CRITICAL';
+
   return (
-    <div className="p-6 max-w-4xl mx-auto text-center space-y-6">
-      <h1 className="text-xl font-bold text-white border-b border-blue-500 pb-2 text-left">System Health Metrics</h1>
-      <div className="text-6xl font-black mt-12 text-blue-500">{p.health||100}%</div>
-      <div className="text-xl text-gray-400">OVERALL ENGINE HEALTH</div>
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="border-b border-[#E2E8F0] pb-3">
+        <h1 className="text-xl font-bold text-[#0F172A]">System Health Metrics</h1>
+        <p className="text-xs text-[#64748B] mt-0.5">Overall engine health index</p>
+      </div>
+
+      <div className={`rounded-2xl border p-8 text-center ${healthBg}`}>
+        <div className="text-7xl font-black mt-4" style={{ color: healthColor }}>
+          {health.toFixed ? health.toFixed(1) : health}%
+        </div>
+        <div className="text-base font-bold mt-2 text-[#475569] uppercase tracking-widest">
+          OVERALL ENGINE HEALTH
+        </div>
+        <span className={`inline-block mt-4 px-4 py-1.5 rounded-full text-sm font-bold border`}
+          style={{ color: healthColor, borderColor: healthColor, backgroundColor: `${healthColor}18` }}>
+          {healthLabel}
+        </span>
+      </div>
     </div>
   );
 }
