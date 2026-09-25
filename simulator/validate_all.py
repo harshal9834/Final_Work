@@ -7,7 +7,7 @@ load_dotenv()
 
 def post(path, data):
     urllib.request.urlopen(urllib.request.Request(
-        f'http://localhost:4000{path}',
+        f'https://male-uav-back.onrender.com{path}',
         data=json.dumps(data).encode('utf-8'),
         headers={'Content-Type': 'application/json'},
         method='POST'

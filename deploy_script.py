@@ -72,7 +72,7 @@ def modify_backend_config():
         with open(BACKEND_CONFIG, 'r', encoding='utf-8') as f:
             content = f.read()
         content = content.replace('"postgresql://postgres:postgres@localhost:5432/main_dashboard_db"', '""')
-        content = content.replace('"http://localhost:4000"', '""')
+        content = content.replace('"https://male-uav-back.onrender.com"', '""')
         content = content.replace('"ws://localhost:4000/stream"', '""')
         with open(BACKEND_CONFIG, 'w', encoding='utf-8') as f:
             f.write(content)

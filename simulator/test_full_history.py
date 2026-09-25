@@ -15,7 +15,7 @@ print(f"Records before: {before}")
 
 # Trigger TAKEOFF
 urllib.request.urlopen(urllib.request.Request(
-    'http://localhost:4000/api/mission',
+    'https://male-uav-back.onrender.com/api/mission',
     data=json.dumps({'phase': 'TAKEOFF', 'isActive': True, 'status': 'RUNNING'}).encode('utf-8'),
     headers={'Content-Type': 'application/json'},
     method='POST'
@@ -24,7 +24,7 @@ time.sleep(2)
 
 # Trigger CRUISE (should save TAKEOFF history)
 urllib.request.urlopen(urllib.request.Request(
-    'http://localhost:4000/api/mission',
+    'https://male-uav-back.onrender.com/api/mission',
     data=json.dumps({'phase': 'CRUISE', 'isActive': True, 'status': 'RUNNING'}).encode('utf-8'),
     headers={'Content-Type': 'application/json'},
     method='POST'

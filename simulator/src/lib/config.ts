@@ -1,5 +1,5 @@
 // Central config — all backend URLs come from here
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://male-uav-back.onrender.com';
 export const WS_BASE  = process.env.NEXT_PUBLIC_WS_URL  || 'ws://localhost:4000';
 
 export const ENDPOINTS = {

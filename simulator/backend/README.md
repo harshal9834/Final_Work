@@ -20,5 +20,5 @@ pip install -r requirements.txt
 python main.py
 ```
 
-- **OpenAPI Docs (Swagger):** `http://localhost:4000/docs`
+- **OpenAPI Docs (Swagger):** `https://male-uav-back.onrender.com/docs`
 - **Telemetry Streaming:** `ws://localhost:4000/stream`

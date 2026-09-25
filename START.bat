@@ -20,7 +20,7 @@ echo.
 echo ========================================================
 echo   ALL 4 MICROSERVICES LAUNCHED SUCCESSFULLY
 echo   --------------------------------------------------------
-echo   1. Simulator Backend:    http://localhost:4000
+echo   1. Simulator Backend:    https://male-uav-back.onrender.com
 echo   2. Main Backend Gateway: http://localhost:8000
 echo   3. Simulator Frontend:   http://localhost:3000
 echo   4. Main Dashboard UI:    http://localhost:5173
