@@ -1,3 +1,4 @@
+import os
 import time
 import asyncio
 import logging
@@ -123,7 +124,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "https://male-uav-back.onrender.com"],
+    allow_origins=[os.getenv("CORS_ORIGIN", "http://localhost:5173"), "http://127.0.0.1:3000", "https://male-uav-back.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -304,3 +305,4 @@ async def websocket_endpoint(websocket: WebSocket):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=4000, reload=True)
+

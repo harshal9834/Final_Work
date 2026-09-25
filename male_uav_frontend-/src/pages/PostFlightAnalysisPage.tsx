@@ -10,7 +10,7 @@ export const PostFlightAnalysisPage = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/postflight/missions)
+    fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/postflight/missions`)
       .then(r => r.json())
       .then(res => {
         setMissions(res);

@@ -128,7 +128,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Single unified GET /api/system/startup-state restoration on mount
   useEffect(() => {
-    fetch(${import.meta.env.VITE_API_URL}/api/system/startup-state)
+    fetch(`${import.meta.env.VITE_API_URL}/api/system/startup-state`)
       .then(res => res.json())
       .then(data => {
         if (data) {
@@ -319,7 +319,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Initial REST fetch from Main Backend Gateway (Port 8000) for active TimescaleDB faults
   useEffect(() => {
-    fetch(${import.meta.env.VITE_API_URL}/api/faults?active=true)
+    fetch(`${import.meta.env.VITE_API_URL}/api/faults?active=true`)
       .then(res => res.json())
       .then(data => {
         const rawFaults = data.activeFaults || data.active_faults || [];
@@ -364,7 +364,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetFault = PRESET_FAULTS.find(p => p.id === faultId) || { name: faultId, component: 'powerplant' };
     
     // POST request to backend TimescaleDB database
-    fetch(${import.meta.env.VITE_API_URL}/api/faults, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/faults`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -617,7 +617,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 2. Lifecycle Recording
   useEffect(() => {
     if (isSimulationRunning && !missionSessionId) {
-      fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/missions/start, {
+      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/missions/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -637,7 +637,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
       .catch(console.error);
     } else if (!isSimulationRunning && missionSessionId) {
-      fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/missions//end, { method: 'POST' }).catch(()=>{});
+      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/missions/${missionSessionId}/end`, { method: 'POST' }).catch(()=>{});
       setMissionSessionId(null);
       generateAlert('MISSION', 'INFO', 'Mission Ended', 'Simulator disengaged and database recording stopped.');
     }
@@ -646,7 +646,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 3. Telemetry & Engine Alerts
   useEffect(() => {
     if (missionSessionId && isSimulationRunning) {
-      fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/missions//telemetry, {
+      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/missions/${missionSessionId}/telemetry`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ telemetry })
@@ -683,7 +683,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     generateAlert('FAULT', mappedSev, title, `Simulator injected anomaly operating on ${faultId} at ${severity}% intensity.`);
 
     if (missionSessionId) {
-      fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/missions//fault, {
+      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/missions/${missionSessionId}/fault`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
