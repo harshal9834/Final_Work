@@ -9,18 +9,23 @@ from dotenv import load_dotenv
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ENV_PATH = os.path.join(BACKEND_DIR, ".env")
 
-if not os.path.exists(ENV_PATH):
-    raise FileNotFoundError(f"CRITICAL CONFIGURATION ERROR: Backend environment file missing at absolute path: {ENV_PATH}")
+if os.path.exists(ENV_PATH):
+    load_dotenv(dotenv_path=ENV_PATH, override=True)
+    print("[Config] Loaded local .env")
+else:
+    print("[Config] Running with Render environment variables")
 
-load_dotenv(dotenv_path=ENV_PATH, override=True)
+TIMESCALE_DATABASE_URL = (
+    os.getenv("TIMESCALE_DATABASE_URL")
+    or os.getenv("DATABASE_URL")
+)
 
-TIMESCALE_DATABASE_URL = os.getenv("TIMESCALE_DATABASE_URL") or os.getenv("DATABASE_URL")
 if not TIMESCALE_DATABASE_URL:
-    raise ValueError(f"CRITICAL CONFIGURATION ERROR: TIMESCALE_DATABASE_URL environment variable is missing in {ENV_PATH}!")
+    raise ValueError("CRITICAL CONFIGURATION ERROR: TIMESCALE_DATABASE_URL and DATABASE_URL environment variables are missing!")
 
 # STRICT CHECK: Raise exception immediately if localhost or 127.0.0.1 is found
 if "localhost" in TIMESCALE_DATABASE_URL.lower() or "127.0.0.1" in TIMESCALE_DATABASE_URL:
-    raise ValueError(f"CRITICAL INTEGRATION ERROR: Localhost database URL detected in {ENV_PATH}! Backend is strictly configured to connect to Timescale Cloud.")
+    raise ValueError("CRITICAL INTEGRATION ERROR: Localhost database URL detected! Backend is strictly configured to connect to a cloud database.")
 
 # Mask password safely for logging
 try:
@@ -34,7 +39,6 @@ except Exception:
     SAFE_DB_URL = "postgres://tsdbadmin:******@r027jcdwwk.tswdu18qwn.tsdb.cloud.timescale.com"
     CONNECTED_HOST = "r027jcdwwk.tswdu18qwn.tsdb.cloud.timescale.com"
 
-print(f"[Timescale Cloud Integration] Loaded backend environment strictly from: {ENV_PATH}")
 print(f"[Timescale Cloud Integration] Connecting strictly to TIMESCALE_DATABASE_URL: {SAFE_DB_URL}")
 
 _connection_pool = None
