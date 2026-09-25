@@ -64,6 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
     FileText: <FileText className="w-4 h-4" />,
     ShieldCheck: <ShieldCheck className="w-4 h-4" />,
     Terminal: <Terminal className="w-4 h-4" />,
+    Layers: <Layers className="w-4 h-4" />,
   };
 
   const topItems = NAV_ITEMS.filter(item => !moreModuleIds.includes(item.id));

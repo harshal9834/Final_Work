@@ -33,6 +33,7 @@ model MissionSession {
   missionEvents      MissionEvent[]
   faultHistories     FaultHistory[]
   aiInterventions    AiIntervention[]
+  postFlightAnalysis PostFlightAnalysis?
 }
 
 model TelemetryHistory {
@@ -102,3 +103,60 @@ model AiIntervention {
 
   missionSession   MissionSession @relation(fields: [missionSessionId], references: [id], onDelete: Cascade)
 }
+
+model PostFlightAnalysis {
+  id               String   @id @default(uuid())
+  missionId        String   @unique
+  missionDuration  Float
+  distanceCovered  Float
+  averageAltitude  Float
+  maximumAltitude  Float
+  averageRPM       Float
+  maximumRPM       Float
+  averageCHT       Float
+  maximumCHT       Float
+  averageEGT       Float
+  maximumEGT       Float
+  fuelConsumed     Float
+  engineHealth     Float
+  missionStatus    String
+  createdAt        DateTime @default(now())
+
+  missionSession   MissionSession @relation(fields: [missionId], references: [id], onDelete: Cascade)
+}
+
+model AntiGravityExperiment {
+  id           String   @id @default(uuid())
+  name         String
+  status       String
+  startTime    DateTime @default(now())
+  endTime      DateTime?
+  powerLevel   Float
+  coreTemp     Float
+  logs         AntiGravityEvent[]
+  telemetry    AntiGravityTelemetry[]
+}
+
+model AntiGravityTelemetry {
+  id           String   @id @default(uuid())
+  experimentId String
+  timestamp    DateTime @default(now())
+  powerDrawKw  Float
+  coreTempC    Float
+  gravMetric   Float
+  stability    Float
+
+  experiment   AntiGravityExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+}
+
+model AntiGravityEvent {
+  id           String   @id @default(uuid())
+  experimentId String
+  timestamp    DateTime @default(now())
+  eventType    String
+  message      String
+  severity     String
+
+  experiment   AntiGravityExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+}
+

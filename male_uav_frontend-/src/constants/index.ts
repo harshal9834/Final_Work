@@ -13,6 +13,7 @@ export const NAV_ITEMS = [
   { id: 'mission-control', label: 'Mission Control', path: '/mission-control', icon: 'Radio', badge: 'GO/NO-GO' },
   { id: 'mission-replay', label: 'Mission Replay', path: '/mission-replay', icon: 'History', badge: 'AI-LOG' },
   { id: 'fault-injection', label: 'Fault Simulator', path: '/fault-injection', icon: 'ZapOff', badge: 'TESTBED' },
+  { id: 'post-flight-analysis', label: 'Post Flight Analysis', path: '/post-flight-analysis', icon: 'ClipboardList', badge: 'AAR' },
   { id: 'maintenance', label: 'Smart Maintenance', path: '/maintenance', icon: 'Wrench', badge: 'LOGBOOK' },
   { id: 'multi-agent', label: 'Multi-Agent Pipeline', path: '/multi-agent', icon: 'Network', badge: '6 AGENTS' },
   { id: 'continuous-learning', label: 'Continuous Learning', path: '/continuous-learning', icon: 'Sparkles', badge: 'ADAPTIVE' },

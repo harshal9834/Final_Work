@@ -19,7 +19,7 @@ const EmptyReplayState = () => (
 );
 
 export const MissionReplayPage: React.FC = () => {
-  const { selectedUav } = useGcs();
+  const { selectedUav, setActiveTab } = useGcs();
   
   // Data State
   const [missions, setMissions] = useState<any[]>([]);
@@ -187,6 +187,7 @@ export const MissionReplayPage: React.FC = () => {
         </div>
         <div className="flex gap-2 mt-4 xl:mt-0">
           <button onClick={() => setReplayData(null)} className="px-4 py-1.5 border border-slate-300 hover:bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-700">Select Mission</button>
+          <button onClick={() => setActiveTab('post-flight-analysis')} className="px-4 py-1.5 border border-blue-500 bg-blue-50 hover:bg-blue-100 text-[10px] font-black uppercase tracking-widest text-blue-700 flex items-center gap-1"><FileText className="w-3 h-3" /> Post Flight Analysis</button>
           <button className="px-4 py-1.5 border border-slate-300 hover:bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center gap-1"><Download className="w-3 h-3" /> Export</button>
         </div>
       </div>

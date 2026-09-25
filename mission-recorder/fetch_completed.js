@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const p = new PrismaClient(); p.missionSession.findFirst({ where: { status: 'SUCCESS' }, include: { _count: true } }).then(m => { console.log(JSON.stringify(m, null, 2)); p.$disconnect(); })

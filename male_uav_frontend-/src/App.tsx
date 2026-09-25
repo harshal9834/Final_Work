@@ -24,6 +24,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { SystemHealthPage } from './pages/SystemHealthPage';
 import { GarudaAIPage } from './pages/GarudaAIPage';
 import { GarudaFloatingBadge } from './components/GarudaFloatingBadge';
+import { PostFlightAnalysisPage } from './pages/PostFlightAnalysisPage';
 
 const MainLayout: React.FC = () => {
   const { systemReady, activeTab, nightVisionMode, startDemoTour } = useGcs();
@@ -119,6 +120,10 @@ const MainLayout: React.FC = () => {
         return <SystemHealthPage />;
       case 'garuda-ai':
         return <GarudaAIPage />;
+      case 'post-flight-analysis':
+        return <PostFlightAnalysisPage />;
+      case 'anti-gravity':
+        return <AntiGravityPage />;
       default:
         return <DashboardPage />;
     }
