@@ -12,7 +12,7 @@ const port = process.env.PORT || 4001;
 
 export const prisma = new PrismaClient();
 
-app.use(cors());
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json());
 
 app.use('/api/missions', missionRoutes);
@@ -25,3 +25,4 @@ app.get('/health', (req, res) => {
 app.listen(port, () => {
   console.log(`Mission Recorder Service running on port ${port}`);
 });
+

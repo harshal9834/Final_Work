@@ -23,7 +23,6 @@ import { ContinuousLearningPage } from './pages/ContinuousLearningPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SystemHealthPage } from './pages/SystemHealthPage';
 import { GarudaAIPage } from './pages/GarudaAIPage';
-import { GarudaFloatingBadge } from './components/GarudaFloatingBadge';
 import { PostFlightAnalysisPage } from './pages/PostFlightAnalysisPage';
 
 const MainLayout: React.FC = () => {
@@ -181,9 +180,6 @@ const MainLayout: React.FC = () => {
 
       {/* Judge Guided Presentation & Evaluation Tour Modal */}
       <DemoTourModal />
-
-      {/* Persistent Global Mission Intelligence Floating Badge */}
-      <GarudaFloatingBadge />
     </div>
   );
 };

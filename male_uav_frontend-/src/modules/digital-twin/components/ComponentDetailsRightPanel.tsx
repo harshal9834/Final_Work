@@ -15,7 +15,51 @@ export const ComponentDetailsRightPanel: React.FC<{ selectedComponent: string | 
     );
   }
 
-  const compData = components[selectedComponent] || components['Main Engine'];
+    // --- DYNAMIC LIVE TELEMETRY LOGIC ---
+  // NO MOCK DATA. NO FALLBACK CONSTANTS.
+  const nLower = (selectedComponent || 'Main Engine').toLowerCase();
+  
+  // Base metrics from live simulator telemetry
+  let liveCht = telemetry?.chtC?.[0] || 0;
+  let livePressure = telemetry?.manifoldPressureInHg || 0;
+  let liveVibration = telemetry?.vibrationRmsMmS || 0;
+
+  // Adapt slightly if they selected specific components to show their specific relevant telemetry, 
+  // but NEVER use static mock values.
+  if (nLower.includes('oil')) {
+      livePressure = telemetry?.oilPressureBar || 0;
+      liveCht = telemetry?.oilTempC || 0;
+  } else if (nLower.includes('turbo') || nLower.includes('overboost')) {
+      livePressure = telemetry?.turboBoostBar || 0;
+      liveCht = telemetry?.egtC?.[0] || 0;
+  } else if (nLower.includes('intercooler') || nLower.includes('cool')) {
+      liveCht = telemetry?.coolantTempC || 0;
+  }
+
+  // Calculate Health Status from real telemetry faults
+  const compFaults = (faults || []).filter((f: any) => {
+     const fn = (f.name + ' ' + (f.description || '')).toLowerCase();
+     if (nLower.includes('main') || nLower.includes('cylinder')) return fn.includes('cylinder') || fn.includes('misfire') || fn.includes('overheat');
+     if (nLower.includes('turbo') || nLower.includes('overboost')) return fn.includes('turbo');
+     if (nLower.includes('oil')) return fn.includes('oil') || fn.includes('leak');
+     if (nLower.includes('injector') || nLower.includes('magnetovalve')) return fn.includes('injector') || fn.includes('fuel');
+     if (nLower.includes('ecu')) return fn.includes('ecu');
+     if (nLower.includes('cool') || nLower.includes('intercooler')) return fn.includes('cool');
+     if (nLower.includes('alternator') || nLower.includes('fusebox')) return fn.includes('alternator');
+     return false;
+  });
+
+  let liveStatus = 'HEALTHY';
+  if (compFaults.length > 0) {
+      liveStatus = compFaults.some((f: any) => f.severity === 'CRITICAL' || f.severity === 'EMERGENCY') ? 'CRITICAL' : 'WARNING';
+  } else {
+      const overallHealth = telemetry?.health_score !== undefined ? telemetry.health_score : 100;
+      if (overallHealth <= 50) liveStatus = 'CRITICAL';
+      else if (overallHealth <= 80) liveStatus = 'WARNING';
+  }
+  
+  // ------------------------------------
+  
   const tabs = ['Live Data', 'Health', 'AI Analysis', 'Maintenance'];
 
   return (
@@ -32,9 +76,9 @@ export const ComponentDetailsRightPanel: React.FC<{ selectedComponent: string | 
               <div className="text-xs text-slate-500">Combustion Chamber Assembly</div>
             </div>
           </div>
-          <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${compData.status === 'CRITICAL' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-            <span className={`w-2 h-2 rounded-full ${compData.status === 'CRITICAL' ? 'bg-red-500' : 'bg-green-500'}`}></span>
-            {compData.status}
+          <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${liveStatus === 'CRITICAL' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+            <span className={`w-2 h-2 rounded-full ${liveStatus === 'CRITICAL' ? 'bg-red-500' : 'bg-green-500'}`}></span>
+            {liveStatus}
           </div>
         </div>
         <div className="flex gap-6 mt-4">
@@ -59,10 +103,10 @@ export const ComponentDetailsRightPanel: React.FC<{ selectedComponent: string | 
              <div className="text-slate-400 text-xs font-bold">IMAGE FEED</div>
           </div>
           <div className="flex-1 space-y-3">
-            <KPI icon="thermometer" label="Temperature (CHT)" value={compData.temperature} unit="°C" color="text-slate-800" />
-            <KPI icon="gauge" label="Pressure (Compression)" value={compData.pressure} unit="Bar" color="text-slate-800" />
-            <KPI icon="activity" label="Vibration (RMS)" value={compData.vibration} unit="mm/s" color="text-green-600" />
-            <KPI icon="check" label="Operating Status" value={compData.status} unit="" color={compData.status === 'CRITICAL' ? 'text-red-600' : 'text-green-600'} />
+            <KPI icon="thermometer" label="Temperature (CHT)" value={liveCht} unit="°C" color="text-slate-800" />
+            <KPI icon="gauge" label="Pressure (Compression)" value={livePressure} unit="Bar" color="text-slate-800" />
+            <KPI icon="activity" label="Vibration (RMS)" value={liveVibration} unit="mm/s" color="text-green-600" />
+            <KPI icon="check" label="Operating Status" value={liveStatus} unit="" color={liveStatus === 'CRITICAL' ? 'text-red-600' : 'text-green-600'} />
           </div>
         </div>
 
@@ -78,29 +122,46 @@ export const ComponentDetailsRightPanel: React.FC<{ selectedComponent: string | 
           </div>
           
           <div className="space-y-4">
-            <MockGraph label="CHT (°C)" value={compData.temperature} color="blue" />
-            <MockGraph label="Vibration (mm/s)" value={compData.vibration} color="green" />
-            <MockGraph label="In-Cylinder Pressure (Bar)" value={compData.pressure} color="orange" />
+            <MockGraph label="CHT (°C)" value={liveCht} color="blue" />
+            <MockGraph label="Vibration (mm/s)" value={liveVibration} color="green" />
+            <MockGraph label="In-Cylinder Pressure (Bar)" value={livePressure} color="orange" />
           </div>
         </div>
 
-        {/* FAULT BANNER */}
-        {compData.activeFaults.length > 0 ? (
-           <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-start gap-3">
-             <div className="bg-red-100 p-1.5 rounded-full text-red-600 mt-0.5">⚠️</div>
-             <div>
-               <div className="font-bold text-red-800 text-sm">Active Faults Detected</div>
-               <div className="text-red-600 text-xs mt-1">{compData.activeFaults.join(', ')}</div>
-             </div>
-           </div>
+        </div>
+
+        {/* GLOBAL ACTIVE FAULTS SECTION */}
+      <div className="border-t border-slate-200 bg-slate-50 p-6 flex-shrink-0">
+        <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-3 pb-2 border-b border-slate-200">
+          ACTIVE FAULTS
+        </h3>
+        {faults && faults.length > 0 ? (
+          <div className="space-y-2">
+            {faults.map((f: any, idx: number) => {
+               const isCrit = f.severity === 'CRITICAL' || f.severity === 'EMERGENCY';
+               return (
+                 <div key={idx} className="bg-white border border-slate-200 rounded p-3 text-xs shadow-sm">
+                   <div className="flex justify-between items-start mb-1">
+                     <span className={`font-bold flex items-center gap-1.5 ${isCrit ? 'text-red-600' : 'text-amber-500'}`}>
+                       {isCrit ? '🔴' : '🟠'} {f.name}
+                     </span>
+                   </div>
+                   <div className="grid grid-cols-2 gap-1 text-[10px] mt-2 text-slate-600">
+                     <div>Severity: <span className={`font-bold ${isCrit ? 'text-red-600' : 'text-amber-500'}`}>{f.severity}</span></div>
+                     <div>Status: <span className="font-bold text-slate-800">ACTIVE</span></div>
+                   </div>
+                 </div>
+               );
+            })}
+          </div>
         ) : (
-           <div className="bg-green-50 border border-green-200 p-4 rounded-xl flex items-start gap-3">
-             <div className="bg-green-100 p-1.5 rounded-full text-green-600 mt-0.5">✓</div>
-             <div>
-               <div className="font-bold text-green-800 text-sm">No active faults</div>
-               <div className="text-green-600 text-xs mt-1">Component operating within normal parameters.</div>
-             </div>
-           </div>
+          <div className="bg-white border border-slate-200 rounded p-4 text-xs shadow-sm flex items-start gap-3">
+            <span className="text-green-500">✓</span>
+            <div>
+              <div className="font-bold text-slate-800">No Active Faults</div>
+              <div className="text-slate-500 mt-1">System operating normally.</div>
+            </div>
+          </div>
         )}
       </div>
     </div>

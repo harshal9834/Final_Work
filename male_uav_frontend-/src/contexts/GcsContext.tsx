@@ -128,7 +128,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Single unified GET /api/system/startup-state restoration on mount
   useEffect(() => {
-    fetch('http://localhost:8000/api/system/startup-state')
+    fetch(${import.meta.env.VITE_API_URL}/api/system/startup-state)
       .then(res => res.json())
       .then(data => {
         if (data) {
@@ -220,10 +220,10 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const connectWS = () => {
       if (!isMounted) return;
       try {
-        ws = new WebSocket('ws://localhost:8000/stream');
+        ws = new WebSocket(import.meta.env.VITE_WS_URL);
 
         ws.onopen = () => {
-          console.log('[Main Dashboard] Connected to Main Backend Gateway (ws://localhost:8000/stream)');
+          console.log('[Main Dashboard] Connected to Main Backend Gateway ()');
           console.log("WS Connected");
         };
 
@@ -319,7 +319,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Initial REST fetch from Main Backend Gateway (Port 8000) for active TimescaleDB faults
   useEffect(() => {
-    fetch('http://localhost:8000/api/faults?active=true')
+    fetch(${import.meta.env.VITE_API_URL}/api/faults?active=true)
       .then(res => res.json())
       .then(data => {
         const rawFaults = data.activeFaults || data.active_faults || [];
@@ -364,7 +364,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetFault = PRESET_FAULTS.find(p => p.id === faultId) || { name: faultId, component: 'powerplant' };
     
     // POST request to backend TimescaleDB database
-    fetch('http://localhost:8000/api/faults', {
+    fetch(${import.meta.env.VITE_API_URL}/api/faults, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -617,7 +617,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 2. Lifecycle Recording
   useEffect(() => {
     if (isSimulationRunning && !missionSessionId) {
-      fetch('http://localhost:4001/api/missions/start', {
+      fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/missions/start, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -637,7 +637,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
       .catch(console.error);
     } else if (!isSimulationRunning && missionSessionId) {
-      fetch('http://localhost:4001/api/missions/' + missionSessionId + '/end', { method: 'POST' }).catch(()=>{});
+      fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/missions//end, { method: 'POST' }).catch(()=>{});
       setMissionSessionId(null);
       generateAlert('MISSION', 'INFO', 'Mission Ended', 'Simulator disengaged and database recording stopped.');
     }
@@ -646,7 +646,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 3. Telemetry & Engine Alerts
   useEffect(() => {
     if (missionSessionId && isSimulationRunning) {
-      fetch('http://localhost:4001/api/missions/' + missionSessionId + '/telemetry', {
+      fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/missions//telemetry, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ telemetry })
@@ -683,7 +683,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     generateAlert('FAULT', mappedSev, title, `Simulator injected anomaly operating on ${faultId} at ${severity}% intensity.`);
 
     if (missionSessionId) {
-      fetch('http://localhost:4001/api/missions/' + missionSessionId + '/fault', {
+      fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/missions//fault, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
@@ -14,12 +14,18 @@ interface Props {
 export const EngineModel: React.FC<Props> = ({ viewMode, orbitRef }) => {
   const { scene } = useGLTF('/model/rotax915.glb');
   const { components, selectedComponent, setSelectedComponent } = useDigitalTwin();
+  const { activeFaults } = useGcs();
   const groupRef = useRef<THREE.Group>(null);
   
   const clonedScene = useMemo(() => {
     const clone = scene.clone();
     
-    // Hide baked-in floors
+    // STEP 3: Inspect GLTF hierarchy
+    console.log("=== GLTF HIERARCHY ===");
+    clone.traverse((child) => {
+      console.log(child.name);
+    });
+    
     clone.traverse((child) => {
       const compName = child.name || 'Main Engine';
       const lowerName = compName.toLowerCase();
@@ -59,14 +65,27 @@ export const EngineModel: React.FC<Props> = ({ viewMode, orbitRef }) => {
           originalOpacity: origMat.opacity !== undefined ? origMat.opacity : 1.0,
           originalTransparent: origMat.transparent || false,
           originalEmissive: origMat.emissive ? origMat.emissive.clone() : new THREE.Color(0x000000),
-          hasEmissive: !!origMat.emissive
+          originalColor: origMat.color ? origMat.color.clone() : new THREE.Color(0xffffff),
+          hasEmissive: !!origMat.emissive,
+          faultLogged: false,
+          blinkState: false
         };
         
-        mesh.material = origMat.clone();
+        // Ensure material can emit light
+        const matClone = origMat.clone();
+        if (matClone.emissive === undefined) {
+            matClone.emissive = new THREE.Color(0x000000);
+        }
+        mesh.material = matClone;
       }
     });
     return clone;
   }, [scene]);
+
+  useEffect(() => {
+    // STEP 1: Log active faults received
+    console.log("ACTIVE_FAULTS", activeFaults);
+  }, [activeFaults]);
 
   useFrame((state) => {
     if (!groupRef.current) return;
@@ -79,9 +98,7 @@ export const EngineModel: React.FC<Props> = ({ viewMode, orbitRef }) => {
     groupRef.current.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        const name = mesh.userData.name;
-        const compData = components[name] || components['Main Engine'];
-        const isFault = compData.status === 'CRITICAL' || compData.health <= 40;
+        const name = mesh.userData.name || '';
         
         let mat = mesh.material as any;
         if (Array.isArray(mat)) mat = mat[0];
@@ -90,36 +107,100 @@ export const EngineModel: React.FC<Props> = ({ viewMode, orbitRef }) => {
         const origOpacity = mesh.userData.originalOpacity;
         const origTransparent = mesh.userData.originalTransparent;
         const origEmissive = mesh.userData.originalEmissive;
+        const origColor = mesh.userData.originalColor;
 
-        if (selectedComponent) {
+        // Evaluate active faults
+        const nLower = name.toLowerCase();
+        let faultSeverity: string | null = null;
+        let isActiveFault = false;
+        let activeFaultName = '';
+
+        activeFaults.forEach(f => {
+          const fn = (f.name + ' ' + (f.description || '')).toLowerCase();
+          let maps = false;
+          
+          // STEP 2 & 4: Map & Find mesh. Hard-mapped because "OilSystem", "Turbocharger", "Cylinder" etc DO NOT exist in rotax915.glb
+          if (fn.includes('turbo') && nLower.includes('overboost')) { maps = true; activeFaultName = 'Turbocharger'; }
+          else if ((fn.includes('cylinder') || fn.includes('overheat')) && nLower.includes('main engine')) { maps = true; activeFaultName = 'Cylinder'; }
+          else if ((fn.includes('oil') || fn.includes('leak') || fn.includes('pressure')) && nLower.includes('oil tank')) { maps = true; activeFaultName = 'Oil System'; }
+          else if ((fn.includes('injector') || fn.includes('fuel')) && nLower.includes('magnetovalve')) { maps = true; activeFaultName = 'Fuel Injectors'; }
+          else if (fn.includes('ecu') && nLower.includes('ecu')) { maps = true; activeFaultName = 'ECU'; }
+          else if (fn.includes('cool') && nLower.includes('intercooler')) { maps = true; activeFaultName = 'Cooling System'; }
+          else if (fn.includes('alternator') && nLower.includes('fusebox')) { maps = true; activeFaultName = 'Alternator'; }
+
+          if (maps) {
+            isActiveFault = true;
+            if (f.severity === 'CRITICAL' || f.severity === 'EMERGENCY') faultSeverity = 'CRITICAL';
+            else if (f.severity === 'WARNING' && faultSeverity !== 'CRITICAL') faultSeverity = 'WARNING';
+            else if (!faultSeverity) faultSeverity = 'INFO';
+          }
+        });
+
+        if (isActiveFault && !mesh.userData.faultLogged) {
+          console.log("MAPPED_COMPONENT", activeFaultName);
+          console.log("FOUND_MESH", name);
+          mesh.userData.faultLogged = true;
+        } else if (!isActiveFault && mesh.userData.faultLogged) {
+          mesh.userData.faultLogged = false;
+          mesh.userData.blinkState = false;
+        }
+
+        // STEP 5 & 6: Blink logic and Force test
+        if (isActiveFault) {
+           mat.opacity = 1.0;
+           mat.transparent = origTransparent;
+           mat.depthWrite = true;
+           
+           // Blink every 500ms -> frequency 2 Hz -> Math.sin(time * 2 * PI * 2)
+           const sineWave = Math.sin(time * 12.566);
+           const isBlinkOn = sineWave > 0;
+           
+           if (isBlinkOn && !mesh.userData.blinkState) {
+               console.log("BLINK_ON");
+               mesh.userData.blinkState = true;
+           } else if (!isBlinkOn && mesh.userData.blinkState) {
+               console.log("BLINK_OFF");
+               mesh.userData.blinkState = false;
+           }
+           
+           if (mat.emissive && mat.color) {
+              if (faultSeverity === 'CRITICAL') {
+                  mat.emissive.setHex(0xff0000);
+                  mat.color.setHex(0xff0000);
+              } else if (faultSeverity === 'WARNING') {
+                  mat.emissive.setHex(0xff8800);
+                  mat.color.setHex(0xff8800);
+              } else {
+                  mat.emissive.setHex(0xffd000);
+                  mat.color.setHex(0xffd000);
+              }
+              
+              // Force test: emissiveIntensity = 5 when on
+              mat.emissiveIntensity = isBlinkOn ? 5.0 : 0.0;
+           }
+        } else if (selectedComponent) {
+          mat.color.copy(origColor);
           if (name !== selectedComponent) {
-             // Ghosting non-selected parts
              if (mat.opacity !== undefined) mat.opacity = THREE.MathUtils.lerp(mat.opacity, ghostOpacity, 0.1);
              mat.transparent = true;
              mat.depthWrite = false;
              if (mat.emissive) mat.emissive.copy(origEmissive);
              mat.emissiveIntensity = 1.0;
           } else {
-             // Selected part glow
              if (mat.opacity !== undefined) mat.opacity = THREE.MathUtils.lerp(mat.opacity, 1.0, 0.1);
              mat.transparent = origTransparent;
              mat.depthWrite = true;
              
              if (mat.emissive) {
-                if (isFault) {
-                   mat.emissive.setHex(0xff0000);
-                   mat.emissiveIntensity = 0.5 + Math.sin(time * 15) * 0.5; // Fast red pulse
-                } else {
-                   mat.emissive.setHex(0x3b82f6);
-                   mat.emissiveIntensity = 0.3 + Math.sin(time * Math.PI) * 0.2; // 2 second pulse (freq = PI)
-                }
+                mat.emissive.setHex(0x3b82f6);
+                mat.emissiveIntensity = 0.3 + Math.sin(time * Math.PI) * 0.2;
              }
           }
         } else {
-           // Reset to normal
            if (mat.opacity !== undefined) {
               mat.opacity = THREE.MathUtils.lerp(mat.opacity, origOpacity, 0.1);
            }
+           mat.color.copy(origColor);
            mat.transparent = origTransparent;
            mat.depthWrite = true;
            if (mat.emissive) mat.emissive.copy(origEmissive);
@@ -157,31 +238,5 @@ const InspectionLeader = ({ name, scene }: any) => {
     return found;
   }, [name, scene]);
 
-  const pos = targetMesh ? new THREE.Vector3().setFromMatrixPosition(targetMesh.matrixWorld) : new THREE.Vector3();
-  const endPoint = new THREE.Vector3(5, 1, 0); // Pointing to right panel
-  const lineRef = useRef<THREE.Line>(null);
-  
-  React.useLayoutEffect(() => {
-    const line = lineRef.current;
-    if (!line) return;
-    if (!line.geometry) return;
-    if (!line.geometry.attributes?.position) return;
-    if (!line.geometry.index && line.geometry.attributes.position.count === 0) return;
-    try {
-      line.computeLineDistances();
-    } catch (e) {
-      console.warn("Could not compute line distances:", e);
-    }
-  }, [pos, endPoint]);
-
-  return (
-    <group>
-      <line ref={lineRef}>
-        <bufferGeometry attach="geometry" setFromPoints={[pos, endPoint]} />
-        <lineDashedMaterial attach="material" color="#3b82f6" dashSize={0.1} gapSize={0.1} linewidth={2} transparent opacity={0.6} />
-      </line>
-    </group>
-  );
+  return null;
 };
-
-useGLTF.preload('/model/rotax915.glb');

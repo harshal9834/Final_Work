@@ -21,7 +21,6 @@ import { useGcs } from '../contexts/GcsContext';
 import { Gauge } from '../components/common/Gauge';
 import { MetricCard } from '../components/common/MetricCard';
 import { StatusBadge } from '../components/common/StatusBadge';
-import { GarudaAIPanel } from '../components/GarudaAIPanel';
 
 export const DashboardPage: React.FC = () => {
   const { 
@@ -566,11 +565,6 @@ export const DashboardPage: React.FC = () => {
           </div>
 
         </div>
-      </div>
-
-      {/* GARUDA-AI Enterprise Mission Intelligence Panel */}
-      <div className="h-[400px]">
-        <GarudaAIPanel />
       </div>
 
       {/* Right Slide-Over Defense Intelligence Analysis Drawer Panel */}

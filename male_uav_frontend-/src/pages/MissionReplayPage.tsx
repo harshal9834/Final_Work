@@ -8,7 +8,7 @@ import {
 import { useGcs } from '../contexts/GcsContext';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from 'recharts';
 
-const API_BASE_URL = 'http://localhost:4001/api/missions';
+const API_BASE_URL = import.meta.env.VITE_SIMULATOR_URL + '/api/missions';
 
 const EmptyReplayState = () => (
   <div className="flex flex-col items-center justify-center h-full p-12 text-slate-500">

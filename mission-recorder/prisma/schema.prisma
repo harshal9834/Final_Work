@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model MissionSession {
@@ -62,6 +62,8 @@ model TelemetryHistory {
   missionSession   MissionSession @relation(fields: [missionSessionId], references: [id], onDelete: Cascade)
 
   @@index([timestamp(sort: Desc)])
+
+  @@index([missionSessionId])
 }
 
 model MissionEvent {
@@ -74,6 +76,8 @@ model MissionEvent {
   description      String?
 
   missionSession   MissionSession @relation(fields: [missionSessionId], references: [id], onDelete: Cascade)
+
+  @@index([missionSessionId])
 }
 
 model FaultHistory {
@@ -90,6 +94,8 @@ model FaultHistory {
   outcome           String?
 
   missionSession    MissionSession @relation(fields: [missionSessionId], references: [id], onDelete: Cascade)
+
+  @@index([missionSessionId])
 }
 
 model AiIntervention {
@@ -102,6 +108,8 @@ model AiIntervention {
   outcome          String?
 
   missionSession   MissionSession @relation(fields: [missionSessionId], references: [id], onDelete: Cascade)
+
+  @@index([missionSessionId])
 }
 
 model PostFlightAnalysis {
@@ -123,40 +131,13 @@ model PostFlightAnalysis {
   createdAt        DateTime @default(now())
 
   missionSession   MissionSession @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@index([missionId])
 }
 
-model AntiGravityExperiment {
-  id           String   @id @default(uuid())
-  name         String
-  status       String
-  startTime    DateTime @default(now())
-  endTime      DateTime?
-  powerLevel   Float
-  coreTemp     Float
-  logs         AntiGravityEvent[]
-  telemetry    AntiGravityTelemetry[]
-}
 
-model AntiGravityTelemetry {
-  id           String   @id @default(uuid())
-  experimentId String
-  timestamp    DateTime @default(now())
-  powerDrawKw  Float
-  coreTempC    Float
-  gravMetric   Float
-  stability    Float
 
-  experiment   AntiGravityExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
-}
 
-model AntiGravityEvent {
-  id           String   @id @default(uuid())
-  experimentId String
-  timestamp    DateTime @default(now())
-  eventType    String
-  message      String
-  severity     String
 
-  experiment   AntiGravityExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
-}
+
 

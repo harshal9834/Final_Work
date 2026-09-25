@@ -119,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleChat, isChatOpen }) => {
         <button 
           onClick={() => {
             if (!isSimulationRunning) toggleSimulation();
-            window.open(`http://localhost:3000/?missionId=${mission?.id || 'MIS-LIVE-001'}`, '_blank');
+            window.open(`${import.meta.env.VITE_FRONTEND_URL || window.location.origin}/?missionId=${mission?.id || 'MIS-LIVE-001'}`, '_blank');
           }}
           className={`px-10 py-2 w-40 justify-center rounded-lg font-black text-[11px] tracking-widest flex items-center gap-2 shadow border transition-colors uppercase ${
             isSimulationRunning 

@@ -10,7 +10,7 @@ export const PostFlightAnalysisPage = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:4001/api/postflight/missions')
+    fetch(${import.meta.env.VITE_SIMULATOR_URL}/api/postflight/missions)
       .then(r => r.json())
       .then(res => {
         setMissions(res);
@@ -22,7 +22,7 @@ export const PostFlightAnalysisPage = () => {
   useEffect(() => {
     if (!selectedMissionId) return;
     setLoading(true);
-    fetch(`http://localhost:4001/api/postflight/${selectedMissionId}`)
+    fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/postflight/${selectedMissionId}`)
       .then(r => r.json())
       .then(res => {
         setData(res);
