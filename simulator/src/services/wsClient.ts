@@ -1,5 +1,5 @@
-import { useTelemetryStore } from '../stores/telemetryStore';
-import { WS_BASE } from '../lib/config';
+﻿import { useTelemetryStore } from '../stores/telemetryStore';
+import { ENDPOINTS } from '../lib/config';
 
 class WSClient {
   private ws: WebSocket | null = null;
@@ -7,20 +7,13 @@ class WSClient {
   private reconnectDelay = 1000;
   private maxDelay = 10000;
   private intentionallyClosed = false;
-  private useIpFallback = false;
 
   connect() {
     if (typeof window === 'undefined') return;
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return;
 
-    let url = `${WS_BASE}/stream`;
-    
-    // If localhost failed previously, fallback to 127.0.0.1 to avoid IPv6 issues
-    if (this.useIpFallback) {
-      url = url.replace('localhost', '127.0.0.1');
-    }
-
-    console.log(`[WS] Connecting to ${url}...`);
+    // Use exact endpoint from config to avoid /stream/stream duplicate paths
+    let url = ENDPOINTS.ws;
 
     try {
       this.ws = new WebSocket(url);
@@ -31,7 +24,7 @@ class WSClient {
     }
 
     this.ws.onopen = () => {
-      console.log('[WS] Connected successfully to', url);
+      console.log('[WS] websocket connected');
       this.reconnectDelay = 1000; // reset backoff
       useTelemetryStore.getState().setTelemetry({ connected: true });
     };
@@ -40,6 +33,7 @@ class WSClient {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === 'telemetry:update' || msg.type === 'TELEMETRY') {
+          console.log('[WS] telemetry received');
           const ts = useTelemetryStore.getState();
           ts.setTelemetry({
             packet: msg.payload,
@@ -54,20 +48,11 @@ class WSClient {
     };
 
     this.ws.onerror = (e: Event) => {
-      console.warn('[WS] Connection retrying on port 4000...');
       useTelemetryStore.getState().setTelemetry({ connected: false });
-      
-      // Try 127.0.0.1 on next attempt if we were trying localhost
-      if (url.includes('localhost')) {
-        this.useIpFallback = true;
-      }
     };
 
     this.ws.onclose = (e) => {
-      let reason = e.reason || 'No reason provided';
-      if (e.code === 1006) reason = 'Connection refused (or CORS)';
-      
-      console.warn(`[WS] Closed (code=${e.code}): ${reason}. Reconnecting in ${this.reconnectDelay}ms...`);
+      console.log('[WS] websocket disconnected');
       useTelemetryStore.getState().setTelemetry({ connected: false });
       
       if (!this.intentionallyClosed) {
@@ -79,7 +64,7 @@ class WSClient {
   private scheduleReconnect() {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.reconnectTimer = setTimeout(() => {
-      console.log(`[WS] Attempting reconnect...`);
+      console.log('[WS] reconnecting');
       this.connect();
       this.reconnectDelay = Math.min(this.reconnectDelay * 1.5, this.maxDelay);
     }, this.reconnectDelay);

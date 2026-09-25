@@ -135,3 +135,4 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleChat, isChatOpen }) => {
     </div>
   );
 };
+
