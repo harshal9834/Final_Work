@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿# -*- coding: utf-8 -*-
+path_right = r"C:\Users\Admin\Downloads\DIGITAL_TWIN_SIH\MALE_UAV\male_uav_frontend-\src\modules\digital-twin\components\ComponentDetailsRightPanel.tsx"
+content_right = """import React, { useState, useEffect } from 'react';
 import { useDigitalTwin } from '../contexts/DigitalTwinContext';
 import { Cpu, Thermometer, Activity, CheckCircle, Check, MoreHorizontal, Box, AlertTriangle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -208,3 +210,8 @@ export const ComponentDetailsRightPanel: React.FC<{ selectedComponent: string | 
     </div>
   );
 };
+"""
+with open(path_right, "w", encoding="utf-8") as f:
+    f.write(content_right)
+
+print("ComponentDetailsRightPanel updated.")

@@ -1,4 +1,6 @@
-import React from 'react';
+﻿# -*- coding: utf-8 -*-
+path_bottom = r"C:\Users\Admin\Downloads\DIGITAL_TWIN_SIH\MALE_UAV\male_uav_frontend-\src\modules\digital-twin\components\TelemetryBottomBar.tsx"
+content_bottom = """import React from 'react';
 
 export const TelemetryBottomBar: React.FC<{telemetry: any}> = ({ telemetry }) => {
   const metrics = [
@@ -36,3 +38,23 @@ export const TelemetryBottomBar: React.FC<{telemetry: any}> = ({ telemetry }) =>
     </div>
   );
 };
+"""
+with open(path_bottom, "w", encoding="utf-8") as f:
+    f.write(content_bottom)
+
+path_layout = r"C:\Users\Admin\Downloads\DIGITAL_TWIN_SIH\MALE_UAV\male_uav_frontend-\src\modules\digital-twin\components\TwinLayout.tsx"
+with open(path_layout, "r", encoding="utf-8") as f:
+    layout_code = f.read()
+
+import re
+# Replace the internalTelemetry block
+layout_code = re.sub(
+    r"const internalTelemetry = \{[\s\S]*?\};\n",
+    r"const internalTelemetry = telemetry || {};\n",
+    layout_code
+)
+
+with open(path_layout, "w", encoding="utf-8") as f:
+    f.write(layout_code)
+
+print("TelemetryBottomBar and TwinLayout updated.")

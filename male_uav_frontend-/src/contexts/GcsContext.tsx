@@ -626,7 +626,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 2. Lifecycle Recording
   useEffect(() => {
     if (isSimulationRunning && !missionSessionId) {
-      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/missions/start`, {
+      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/mission`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -646,7 +646,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
       .catch(console.error);
     } else if (!isSimulationRunning && missionSessionId) {
-      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/missions/${missionSessionId}/end`, { method: 'POST' }).catch(()=>{});
+      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/mission`, { method: 'POST' }).catch(()=>{});
       setMissionSessionId(null);
       generateAlert('MISSION', 'INFO', 'Mission Ended', 'Simulator disengaged and database recording stopped.');
     }
@@ -655,7 +655,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 3. Telemetry & Engine Alerts
   useEffect(() => {
     if (missionSessionId && isSimulationRunning) {
-      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/missions/${missionSessionId}/telemetry`, {
+      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/telemetry`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ telemetry })
@@ -692,7 +692,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     generateAlert('FAULT', mappedSev, title, `Simulator injected anomaly operating on ${faultId} at ${severity}% intensity.`);
 
     if (missionSessionId) {
-      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/missions/${missionSessionId}/fault`, {
+      fetch(`${import.meta.env.VITE_SIMULATOR_URL}/api/faults/inject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

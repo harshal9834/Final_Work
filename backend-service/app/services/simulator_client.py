@@ -82,10 +82,10 @@ class SimulatorClient:
 
     async def inject_fault(self, data: Dict[str, Any]) -> Dict[str, Any]:
         data['active'] = True
-        return await self._post(\"/api/faults\", data)
+        return await self._post("/api/faults", data)
 
     async def clear_fault(self, data: Dict[str, Any]) -> Dict[str, Any]:
         data['active'] = False
-        return await self._post(\"/api/faults\", data)
+        return await self._post("/api/faults", data)
 
 simulator_client = SimulatorClient()
