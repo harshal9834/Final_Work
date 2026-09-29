@@ -85,7 +85,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [systemReady, setSystemReady] = useState<boolean>(false);
   const [uavFleet, setUavFleet] = useState<UavUnit[]>(MOCK_UAV_FLEET);
   const [selectedUavId, setSelectedUavIdState] = useState<string>('UAV-TAPAS-201');
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>('digital-twin');
   const [voiceAlertsEnabled, setVoiceAlertsEnabled] = useState<boolean>(true);
   const [nightVisionMode, setNightVisionMode] = useState<boolean>(false);
   const [isSimulationRunning, setIsSimulationRunning] = useState<boolean>(true);
@@ -220,7 +220,16 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const connectWS = () => {
       if (!isMounted) return;
       try {
-        ws = new WebSocket(import.meta.env.VITE_WS_URL);
+        
+          // Automatically upgrade http to ws / https to wss if VITE_WS_URL is omitted or incorrect
+          const apiUrl = import.meta.env.VITE_API_URL || "https://final-work-1-w5a7.onrender.com";
+          let wsUrl = import.meta.env.VITE_WS_URL;
+          
+          if (!wsUrl || (wsUrl.includes("localhost") && !apiUrl.includes("localhost"))) {
+              wsUrl = apiUrl.replace(/^http:\/\//i, 'ws://').replace(/^https:\/\//i, 'wss://') + "/stream";
+          }
+          ws = new WebSocket(wsUrl);
+
 
         ws.onopen = () => {
           console.log('[Main Dashboard] Connected to Main Backend Gateway ()');
@@ -425,7 +434,7 @@ export const GcsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
 
     // PATCH request to backend TimescaleDB database
-    fetch(`http://localhost:8000/api/faults/${faultId}/remove`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/faults/${faultId}/remove`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: faultId, status: 'REMOVED' })
@@ -756,3 +765,4 @@ export const useGcs = (): GcsContextType => {
   }
   return context;
 };
+

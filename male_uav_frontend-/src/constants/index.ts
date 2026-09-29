@@ -5,9 +5,9 @@ export const FACILITY_NAME = 'AERONAUTICAL DEVELOPMENT ESTABLISHMENT (ADE) - DRD
 export const COMMAND_CENTER = 'GROUND CONTROL STATION #03 (COMMAND & TELEMETRY NODE)';
 
 export const NAV_ITEMS = [
+  { id: 'digital-twin', label: '3D Digital Twin', path: '/digital-twin', icon: 'Cpu', badge: '3D/HEAT' },
   { id: 'dashboard', label: 'Mission Overview', path: '/', icon: 'LayoutDashboard', badge: 'LIVE' },
   { id: 'live-monitoring', label: 'Live Telemetry', path: '/live-monitoring', icon: 'Activity', badge: 'SCADA' },
-  { id: 'digital-twin', label: '3D Digital Twin', path: '/digital-twin', icon: 'Cpu', badge: '3D/HEAT' },
   { id: 'ai-predictions', label: 'AI Prediction Center', path: '/ai-predictions', icon: 'BrainCircuit', badge: 'RUL/XAI' },
   { id: 'fleet', label: 'Fleet Monitoring', path: '/fleet', icon: 'Radar', badge: '5 UAVs' },
   { id: 'mission-control', label: 'Mission Control', path: '/mission-control', icon: 'Radio', badge: 'GO/NO-GO' },

@@ -100,7 +100,7 @@ export const EngineViewer: React.FC<Props> = ({ viewMode, setViewMode }) => {
           <Canvas 
              shadows 
              dpr={[1, 2]} 
-             camera={{ position: [2.5, 1.5, 3], fov: 35, near: 0.1, far: 1000 }} 
+             camera={{ position: [0.3, 0, 1], fov: 35, near: 0.1, far: 1000 }} 
              className="w-full h-full outline-none"
              onPointerMissed={() => resetCamera()}
           >
