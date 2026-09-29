@@ -139,6 +139,7 @@ async def health_check():
 
 @app.websocket("/ws")
 @app.websocket("/stream")
+@app.websocket("/ws/stream")
 async def websocket_dashboard_endpoint(websocket: WebSocket):
     await dashboard_ws_manager.connect(websocket)
     try:

@@ -1,13 +1,31 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 path = r"C:\Users\Admin\Downloads\DIGITAL_TWIN_SIH\MALE_UAV\simulator\src\lib\config.ts"
-content = """// Central config - all backend URLs come from here
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://final-work-1-w5a7.onrender.com';
+with open(path, "r", encoding="utf-8") as f:
+    content = f.read()
 
-const cleanApiBase = API_BASE.replace(/\/+$/, '').replace(/\/stream$/, '');
-const derivedWsBase = cleanApiBase.replace(/^http:\/\//i, 'ws://').replace(/^https:\/\//i, 'wss://');
-const envWs = process.env.NEXT_PUBLIC_WS_URL ? process.env.NEXT_PUBLIC_WS_URL.replace(/\/+$/, '').replace(/\/stream$/, '') : null;
+import re
 
-export const WS_BASE = envWs || derivedWsBase;
+# We will completely normalize the URLs regardless of what the user put in Vercel.
+replacement = """// Central config - all backend URLs come from here
+let rawApi = process.env.NEXT_PUBLIC_API_URL || 'https://final-work-1-w5a7.onrender.com';
+let rawWs = process.env.NEXT_PUBLIC_WS_URL || '';
+
+// Completely strip any accidental trailing paths the user might have added in Vercel
+const cleanApiBase = rawApi.replace(/\\/ws\\/stream\\/?$/, '').replace(/\\/stream\\/?$/, '').replace(/\\/ws\\/?$/, '').replace(/\\/+$/, '');
+
+// If WS URL is explicitly provided, clean it too. Otherwise derive it.
+let finalWs = '';
+if (rawWs) {
+  finalWs = rawWs.replace(/\\/ws\\/stream\\/?$/, '/ws').replace(/\\/stream\\/?$/, '/ws').replace(/\\/+$/, '');
+  // ensure it ends with /ws
+  if (!finalWs.endsWith('/ws')) {
+    finalWs += '/ws';
+  }
+} else {
+  finalWs = cleanApiBase.replace(/^http:\\/\\//i, 'ws://').replace(/^https:\\/\\//i, 'wss://') + '/ws';
+}
+
+export const API_BASE = cleanApiBase;
 
 export const ENDPOINTS = {
   mission:   `${cleanApiBase}/api/mission`,
@@ -15,9 +33,10 @@ export const ENDPOINTS = {
   telemetry: `${cleanApiBase}/api/telemetry/latest`,
   engine:    `${cleanApiBase}/api/engine`,
   status:    `${cleanApiBase}/api/status`,
-  ws:        `${WS_BASE}/stream`,
+  ws:        finalWs,
 };
 """
+
 with open(path, "w", encoding="utf-8") as f:
-    f.write(content)
-print("Done")
+    f.write(replacement)
+print("Rewrote config.ts to normalize URLs aggressively")
