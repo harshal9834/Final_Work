@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿# -*- coding: utf-8 -*-
+path = r"C:\Users\Admin\Downloads\DIGITAL_TWIN_SIH\MALE_UAV\male_uav_frontend-\src\pages\MissionReplayPage.tsx"
+
+content = """import React, { useState, useEffect } from 'react';
 import { 
   Play, Pause, Square, Rewind, FastForward, Activity, 
   Settings, Zap, TrendingUp, AlertTriangle, Cpu, List, MapPin, Search
@@ -11,7 +14,6 @@ import L from 'leaflet';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Stage } from '@react-three/drei';
 import { EngineModel } from '../modules/digital-twin/components/EngineModel';
-import { DigitalTwinProvider } from '../modules/digital-twin/contexts/DigitalTwinContext';
 
 // Fix leaflet default icon
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -264,7 +266,6 @@ export const MissionReplayPage: React.FC = () => {
             </div>
           </div>
           <div className="flex-1 w-full relative bg-slate-50/50 cursor-move">
-            <DigitalTwinProvider>
             <Canvas camera={{ position: [2.5, 1.5, 3], fov: 35 }}>
               <Environment preset="studio" />
               <ambientLight intensity={1.2} />
@@ -272,7 +273,6 @@ export const MissionReplayPage: React.FC = () => {
               <OrbitControls autoRotate={isPlaying} autoRotateSpeed={2} enableDamping />
               <EngineModel viewMode="SOLID" orbitRef={null} />
             </Canvas>
-            </DigitalTwinProvider>
             <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3">
               <span className="text-[10px] font-bold text-slate-500 whitespace-nowrap">Time: {formatTime(timeSec)}</span>
               <input type="range" min="0" max={duration} value={timeSec} onChange={e => setTimeSec(Number(e.target.value))} className="w-full accent-blue-500 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
@@ -448,3 +448,8 @@ export const MissionReplayPage: React.FC = () => {
     </div>
   );
 };
+"""
+
+with open(path, "w", encoding="utf-8") as f:
+    f.write(content)
+print("MissionReplayPage written successfully.")
